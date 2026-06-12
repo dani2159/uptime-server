@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaintenanceWindowController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\NotificationChannelController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StatusPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,3 +30,6 @@ Route::get('/push/{token}', [MonitorController::class, 'receivePush'])->name('mo
 Route::resource('maintenance', MaintenanceWindowController::class)->except(['show']);
 Route::resource('status-pages', StatusPageController::class)->except(['show']);
 Route::get('/status/{slug}', [StatusPageController::class, 'show'])->name('status.public');
+
+Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');

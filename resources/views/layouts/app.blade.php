@@ -54,6 +54,7 @@
                 ['route' => 'channels.index',      'pattern' => 'channels.*',       'icon' => 'fa-bell',         'label' => 'Notifikasi'],
                 ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',    'icon' => 'fa-clock',        'label' => 'Maintenance'],
                 ['route' => 'status-pages.index',  'pattern' => 'status-pages.*',  'icon' => 'fa-circle-check', 'label' => 'Status Pages'],
+                ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',      'label' => 'Settings'],
             ];
         @endphp
         @foreach($aNav as $n)
