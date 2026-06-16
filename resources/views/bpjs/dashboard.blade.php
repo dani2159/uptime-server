@@ -10,6 +10,10 @@
             <p class="text-sm text-gray-500 mt-0.5">BPJS, Satu Sehat, dan layanan lainnya</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('status-pages.index') }}"
+               class="text-xs text-sky-600 hover:text-sky-800 border border-sky-200 hover:border-sky-400 px-3 py-1.5 rounded-full transition-colors">
+                <i class="fa-solid fa-share-nodes mr-1"></i>Kelola Halaman Publik
+            </a>
             <span x-show="lastChecked" x-cloak class="text-xs text-gray-400">
                 Cek terakhir: <span x-text="lastChecked"></span>
             </span>

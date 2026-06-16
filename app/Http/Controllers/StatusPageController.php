@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Monitor;
 use App\Models\MonitorLog;
 use App\Models\StatusPage;
+use App\Services\ApiHealthRegistry;
 use Illuminate\Http\Request;
 
 class StatusPageController extends Controller
 {
+    public function __construct(private ApiHealthRegistry $registry) {}
+
     public function index()
     {
         $pages = StatusPage::latest()->paginate(20);
@@ -18,17 +21,20 @@ class StatusPageController extends Controller
     public function create()
     {
         $monitors = Monitor::orderBy('name')->get(['id', 'name', 'last_status']);
-        return view('status-pages.create', compact('monitors'));
+        $services = $this->registry->all();
+        return view('status-pages.create', compact('monitors', 'services'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'slug'          => 'required|string|max:50|unique:status_pages,slug|regex:/^[a-z0-9-]+$/',
-            'title'         => 'required|string|max:100',
-            'description'   => 'nullable|string|max:500',
-            'is_public'     => 'boolean',
-            'sections_json' => 'required|string',
+            'slug'           => 'required|string|max:50|unique:status_pages,slug|regex:/^[a-z0-9-]+$/',
+            'title'          => 'required|string|max:100',
+            'description'    => 'nullable|string|max:500',
+            'is_public'      => 'boolean',
+            'sections_json'  => 'required|string',
+            'service_keys'   => 'array',
+            'service_keys.*' => 'string',
         ]);
 
         $sections = json_decode($request->sections_json, true) ?? [];
@@ -37,12 +43,13 @@ class StatusPageController extends Controller
             ->unique()->values()->toArray();
 
         StatusPage::create([
-            'slug'        => $request->slug,
-            'title'       => $request->title,
-            'description' => $request->description,
-            'is_public'   => $request->boolean('is_public', true),
-            'sections'    => $sections,
-            'monitor_ids' => $allIds,
+            'slug'         => $request->slug,
+            'title'        => $request->title,
+            'description'  => $request->description,
+            'is_public'    => $request->boolean('is_public', true),
+            'sections'     => $sections,
+            'monitor_ids'  => $allIds,
+            'service_keys' => $request->input('service_keys', []),
         ]);
 
         return redirect()->route('status-pages.index')->with('success', 'Status page berhasil dibuat.');
@@ -51,17 +58,20 @@ class StatusPageController extends Controller
     public function edit(StatusPage $statusPage)
     {
         $monitors = Monitor::orderBy('name')->get(['id', 'name', 'last_status']);
-        return view('status-pages.edit', compact('statusPage', 'monitors'));
+        $services = $this->registry->all();
+        return view('status-pages.edit', compact('statusPage', 'monitors', 'services'));
     }
 
     public function update(Request $request, StatusPage $statusPage)
     {
         $request->validate([
-            'slug'          => 'required|string|max:50|unique:status_pages,slug,' . $statusPage->id . '|regex:/^[a-z0-9-]+$/',
-            'title'         => 'required|string|max:100',
-            'description'   => 'nullable|string|max:500',
-            'is_public'     => 'boolean',
-            'sections_json' => 'required|string',
+            'slug'           => 'required|string|max:50|unique:status_pages,slug,' . $statusPage->id . '|regex:/^[a-z0-9-]+$/',
+            'title'          => 'required|string|max:100',
+            'description'    => 'nullable|string|max:500',
+            'is_public'      => 'boolean',
+            'sections_json'  => 'required|string',
+            'service_keys'   => 'array',
+            'service_keys.*' => 'string',
         ]);
 
         $sections = json_decode($request->sections_json, true) ?? [];
@@ -70,12 +80,13 @@ class StatusPageController extends Controller
             ->unique()->values()->toArray();
 
         $statusPage->update([
-            'slug'        => $request->slug,
-            'title'       => $request->title,
-            'description' => $request->description,
-            'is_public'   => $request->boolean('is_public', true),
-            'sections'    => $sections,
-            'monitor_ids' => $allIds,
+            'slug'         => $request->slug,
+            'title'        => $request->title,
+            'description'  => $request->description,
+            'is_public'    => $request->boolean('is_public', true),
+            'sections'     => $sections,
+            'monitor_ids'  => $allIds,
+            'service_keys' => $request->input('service_keys', []),
         ]);
 
         return redirect()->route('status-pages.index')->with('success', 'Status page berhasil diperbarui.');
@@ -139,6 +150,16 @@ class StatusPageController extends Controller
             ? 'operational'
             : 'degraded';
 
-        return view('status-pages.show', compact('page', 'sectionData', 'overallStatus'));
+        $apiServices = [];
+        if (!empty($page->service_keys)) {
+            $allServices = $this->registry->getCachedAll();
+            foreach ($page->service_keys as $key) {
+                if (isset($allServices[$key])) {
+                    $apiServices[$key] = $allServices[$key];
+                }
+            }
+        }
+
+        return view('status-pages.show', compact('page', 'sectionData', 'overallStatus', 'apiServices'));
     }
 }

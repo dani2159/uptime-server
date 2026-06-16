@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class StatusPage extends Model
 {
-    protected $fillable = ['slug', 'title', 'description', 'is_public', 'monitor_ids', 'sections'];
+    protected $fillable = ['slug', 'title', 'description', 'is_public', 'monitor_ids', 'sections', 'service_keys'];
 
     protected $casts = [
-        'is_public'   => 'boolean',
-        'monitor_ids' => 'array',
-        'sections'    => 'array',
+        'is_public'    => 'boolean',
+        'monitor_ids'  => 'array',
+        'sections'     => 'array',
+        'service_keys' => 'array',
     ];
 
     public function allMonitorIds(): array

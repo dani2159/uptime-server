@@ -1,6 +1,7 @@
 @php
     $statusPage = $statusPage ?? null;
     $val = fn($f, $d = '') => old($f, $statusPage?->$f ?? $d);
+    $selectedKeys = old('service_keys', $statusPage?->service_keys ?? []);
     $inp = 'w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500';
     $lbl = 'block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide';
 @endphp
@@ -29,6 +30,23 @@
     <label class="{{ $lbl }}">Deskripsi (opsional)</label>
     <textarea name="description" rows="2" class="{{ $inp }}"
               placeholder="Halaman status layanan sistem informasi...">{{ $val('description') }}</textarea>
+</div>
+
+<div>
+    <label class="{{ $lbl }} mb-2">Layanan API yang ditampilkan (opsional)</label>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-sky-50/50 dark:bg-slate-700/30 border border-sky-100 dark:border-slate-700">
+        @forelse($services as $key => $checker)
+        <label class="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" name="service_keys[]" value="{{ $key }}"
+                   {{ in_array($key, $selectedKeys) ? 'checked' : '' }}
+                   class="rounded border-sky-300 text-sky-500 focus:ring-sky-300">
+            <span class="text-gray-700 dark:text-slate-300">{{ $checker->getServiceLabel() }}</span>
+        </label>
+        @empty
+        <p class="text-xs text-gray-400 dark:text-slate-500 italic col-span-3">Belum ada layanan API terdaftar.</p>
+        @endforelse
+    </div>
+    @error('service_keys')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
 
 <div>

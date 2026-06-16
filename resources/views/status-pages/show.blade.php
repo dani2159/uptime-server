@@ -88,6 +88,33 @@
 {{-- ══════════ CONTENT ══════════ --}}
 <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-6">
 
+    @if(!empty($apiServices))
+    <div class="mb-8">
+        <h2 class="text-xl font-light text-gray-600 mb-3">Status API</h2>
+        @foreach($apiServices as $svc)
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">{{ $svc['label'] }}</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                @forelse($svc['results'] as $result)
+                <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center text-center">
+                    <p class="text-sm font-semibold text-gray-800 mb-2 leading-tight">{{ $result['label'] }}</p>
+                    @if(isset($result['ms']))
+                    <p class="text-xl font-bold text-gray-900">{{ $result['ms'] }}<sup class="text-xs font-normal text-gray-400 ml-0.5">ms</sup></p>
+                    @endif
+                    <p class="mt-2 text-sm font-semibold {{ ($result['connected'] ?? false) ? 'text-emerald-600' : 'text-rose-600' }}">
+                        {{ ($result['connected'] ?? false) ? 'Terhubung' : 'Gagal' }}
+                    </p>
+                    <p class="mt-1 text-xs text-gray-400">{{ $result['checked_at'] ?? '-' }}</p>
+                </div>
+                @empty
+                <div class="col-span-6 py-6 text-center text-gray-400 text-sm">Belum ada data pengecekan.</div>
+                @endforelse
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     @forelse($sectionData as $section)
     <div class="mb-8">
 
@@ -165,10 +192,12 @@
         </div>
     </div>
     @empty
+    @if(empty($apiServices))
     <div class="text-center py-20 text-gray-400">
         <i class="fa-solid fa-server text-4xl opacity-20 block mb-3"></i>
         <p class="text-sm">Belum ada monitor yang ditampilkan.</p>
     </div>
+    @endif
     @endforelse
 
 </main>

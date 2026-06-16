@@ -59,6 +59,8 @@
                 ['route' => 'api-health.dashboard','pattern' => 'api-health.*',     'icon' => 'fa-bolt',         'label' => 'API Health'],
                 ['route' => 'channels.index',      'pattern' => 'channels.*',       'icon' => 'fa-bell',         'label' => 'Notifikasi'],
                 ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',    'icon' => 'fa-clock',        'label' => 'Maintenance'],
+                ['route' => 'incidents.index',     'pattern' => 'incidents.*',     'icon' => 'fa-triangle-exclamation', 'label' => 'Insiden'],
+                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',   'label' => 'SLA Report'],
                 ['route' => 'status-pages.index',  'pattern' => 'status-pages.*',  'icon' => 'fa-circle-check', 'label' => 'Status Pages'],
             ];
         @endphp
@@ -84,6 +86,18 @@
             <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium">{{ now()->format('H:i:s') }}</p>
             <p id="live-date" class="text-[10px] text-gray-400 dark:text-slate-500">{{ now()->isoFormat('ddd, D MMM Y') }}</p>
         </div>
+        @auth
+        <div class="flex items-center gap-2 pl-3 ml-1 border-l border-sky-100 dark:border-slate-700">
+            <span class="text-xs font-medium text-gray-500 dark:text-slate-400 hidden md:block">{{ auth()->user()->name }}</span>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" title="Keluar"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
+            </form>
+        </div>
+        @endauth
     </div>
 </header>
 

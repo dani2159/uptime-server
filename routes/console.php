@@ -17,6 +17,9 @@ try {
 }
 
 if ($bpjsEnabled) {
-    Schedule::command('api:health-check')
-        ->cron("*/{$bpjsInterval} * * * *");
+    $cron = $bpjsInterval % 60 === 0
+        ? "0 */" . ($bpjsInterval / 60) . " * * *"
+        : "*/{$bpjsInterval} * * * *";
+
+    Schedule::command('api:health-check')->cron($cron);
 }

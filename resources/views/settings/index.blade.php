@@ -67,7 +67,7 @@
 
                     {{-- Preset buttons --}}
                     <div class="flex flex-wrap gap-2 mb-3" x-data="{ interval: {{ $settings['bpjs_check_interval'] }} }">
-                        @foreach([10 => '10 menit', 15 => '15 menit', 30 => '30 menit', 60 => '1 jam'] as $val => $label)
+                        @foreach([10 => '10 menit', 15 => '15 menit', 30 => '30 menit', 60 => '1 jam', 360 => '6 jam (4x/hari)'] as $val => $label)
                         <button type="button"
                                 onclick="document.getElementById('bpjs_interval_input').value = {{ $val }}; this.closest('[x-data]').__x.$data.interval = {{ $val }}"
                                 class="text-xs px-3 py-1.5 rounded-lg border transition-colors

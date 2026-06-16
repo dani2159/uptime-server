@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Incident;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
 use App\Services\DnsResolver;
@@ -72,6 +73,7 @@ class CheckMonitors extends Command
 
             if ($wasConfirmedDown && !$inMaintenance) {
                 $this->notifier->notifyRecovered($monitor);
+                $this->closeIncident($monitor);
             }
             return;
         }
@@ -83,6 +85,38 @@ class CheckMonitors extends Command
         // Notif hanya saat pertama kali retries mencapai threshold (bukan setiap check)
         if ($newRetries === $monitor->retry_count && !$inMaintenance) {
             $this->notifier->notifyDown($monitor);
+            $this->openIncident($monitor);
         }
+    }
+
+    private function openIncident(Monitor $monitor): void
+    {
+        if (Incident::open()->where('monitor_id', $monitor->id)->exists()) {
+            return;
+        }
+
+        Incident::create([
+            'monitor_id' => $monitor->id,
+            'category'   => 'monitor_downtime',
+            'started_at' => $monitor->last_down_at ?? now(),
+            'status'     => 'open',
+        ]);
+    }
+
+    private function closeIncident(Monitor $monitor): void
+    {
+        $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
+
+        if (!$incident) {
+            return;
+        }
+
+        $resolvedAt = now();
+
+        $incident->update([
+            'resolved_at'       => $resolvedAt,
+            'status'            => 'closed',
+            'duration_seconds'  => $incident->started_at->diffInSeconds($resolvedAt),
+        ]);
     }
 }
