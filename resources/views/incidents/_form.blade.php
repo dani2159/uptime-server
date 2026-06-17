@@ -12,9 +12,9 @@
 <div class="mb-4">
     <label class="{{ $lbl }}">Kategori Insiden</label>
     <select name="category" x-model="category" class="{{ $inp }}">
-        <option value="monitor_downtime">Insiden Monitor (Down/Up)</option>
-        <option value="general">Insiden Umum IT</option>
-        <option value="client_report">Laporan Error dari Client</option>
+        <option value="monitor_downtime" {{ $initCategory === 'monitor_downtime' ? 'selected' : '' }}>Insiden Monitor (Down/Up)</option>
+        <option value="general"          {{ $initCategory === 'general'          ? 'selected' : '' }}>Insiden Umum IT</option>
+        <option value="client_report"    {{ $initCategory === 'client_report'    ? 'selected' : '' }}>Laporan Error dari Client</option>
     </select>
     @error('category')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>

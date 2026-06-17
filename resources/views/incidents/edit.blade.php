@@ -10,7 +10,7 @@
         </a>
         <div>
             <h1 class="text-xl font-bold text-gray-800">Edit Insiden</h1>
-            <p class="text-xs text-gray-400">{{ $incident->monitor->name }}</p>
+            <p class="text-xs text-gray-400">{{ $incident->display_title }}</p>
         </div>
     </div>
 

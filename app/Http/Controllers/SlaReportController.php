@@ -16,6 +16,7 @@ class SlaReportController extends Controller
         $periodStart   = now()->subDays($days);
         $periodSeconds = $days * 86400;
 
+        // --- Panel 1: SLA per monitor (hanya monitor_downtime) ---
         $monitors = Monitor::orderBy('name')->get();
 
         $rows = $monitors->map(function (Monitor $monitor) use ($periodStart, $periodSeconds) {
@@ -44,6 +45,66 @@ class SlaReportController extends Controller
             ];
         });
 
-        return view('sla-report.index', compact('rows', 'days'));
+        // --- Panel 2: Ringkasan insiden operasional (semua kategori) ---
+        $allIncidents = Incident::where('started_at', '>=', $periodStart)->get();
+
+        // Bar chart: insiden per interval waktu, stacked by category
+        $chartLabels  = [];
+        $chartMonitor = [];
+        $chartGeneral = [];
+        $chartClient  = [];
+
+        if ($days === 7) {
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i)->toDateString();
+                $chartLabels[]  = now()->subDays($i)->format('d M');
+                $bucket = $allIncidents->filter(fn ($inc) => $inc->started_at->toDateString() === $date);
+                $chartMonitor[] = $bucket->where('category', 'monitor_downtime')->count();
+                $chartGeneral[] = $bucket->where('category', 'general')->count();
+                $chartClient[]  = $bucket->where('category', 'client_report')->count();
+            }
+        } else {
+            $weeks = $days === 30 ? 5 : 13;
+            for ($i = $weeks - 1; $i >= 0; $i--) {
+                $wStart = now()->copy()->startOfWeek()->subWeeks($i);
+                $wEnd   = $wStart->copy()->endOfWeek();
+                $chartLabels[]  = $wStart->format('d M');
+                $bucket = $allIncidents->filter(fn ($inc) => $inc->started_at->between($wStart, $wEnd));
+                $chartMonitor[] = $bucket->where('category', 'monitor_downtime')->count();
+                $chartGeneral[] = $bucket->where('category', 'general')->count();
+                $chartClient[]  = $bucket->where('category', 'client_report')->count();
+            }
+        }
+
+        // Donut chart: breakdown severity (semua insiden)
+        $severityCounts = [
+            'critical' => $allIncidents->where('severity', 'critical')->count(),
+            'high'     => $allIncidents->where('severity', 'high')->count(),
+            'medium'   => $allIncidents->where('severity', 'medium')->count(),
+            'low'      => $allIncidents->where('severity', 'low')->count(),
+        ];
+
+        // Summary card: insiden operasional (general + client_report)
+        $opIncidents   = $allIncidents->whereIn('category', ['general', 'client_report']);
+        $opClosed      = $opIncidents->where('status', 'closed');
+        $opMttr        = $opClosed->count() > 0 ? (int) $opClosed->avg('duration_seconds') : 0;
+
+        $opSummary = [
+            'total'         => $opIncidents->count(),
+            'open'          => $opIncidents->where('status', 'open')->count(),
+            'closed'        => $opClosed->count(),
+            'mttr_seconds'  => $opMttr,
+            'general'       => $opIncidents->where('category', 'general')->count(),
+            'client_report' => $opIncidents->where('category', 'client_report')->count(),
+        ];
+
+        $chartData = [
+            'labels'  => $chartLabels,
+            'monitor' => $chartMonitor,
+            'general' => $chartGeneral,
+            'client'  => $chartClient,
+        ];
+
+        return view('sla-report.index', compact('rows', 'days', 'chartData', 'severityCounts', 'opSummary'));
     }
 }
