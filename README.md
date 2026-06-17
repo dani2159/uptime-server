@@ -2,7 +2,7 @@
 
 Aplikasi monitoring uptime website, server, dan kesehatan API — dibangun dengan Laravel 12.
 Mendukung monitoring domain beserta IP address-nya, cek konektivitas endpoint BPJS & Satu Sehat,
-serta notifikasi otomatis via Telegram dan WhatsApp.
+notifikasi otomatis via Telegram, WhatsApp & Webhook, serta pencatatan insiden dan laporan SLA.
 
 ---
 
@@ -23,11 +23,12 @@ serta notifikasi otomatis via Telegram dan WhatsApp.
 - **History & Log** — riwayat pengecekan disimpan ke database dengan grafik response time 48 jam
 - **Heartbeat Bar** — visualisasi 90 pengecekan terakhir per monitor
 - **Status Page Builder** — buat halaman status publik dengan sections/grup monitor dan layanan API dalam satu URL; tampilan bisa dikombinasikan antara monitor uptime dan service health
-- **Maintenance Window** — jadwalkan jendela maintenance agar notifikasi tidak dikirim saat downtime terjadwal
+- **Maintenance Window** — jadwalkan jendela maintenance agar notifikasi dan pencatatan insiden tidak aktif saat downtime terjadwal
 - **Incident Tracking** — insiden tercatat otomatis saat monitor DOWN/UP; bisa ditambah manual untuk insiden umum IT atau laporan error dari client, lengkap dengan kategori, tingkat keparahan (severity), dan informasi pelapor
 - **SLA Report** — laporan availability per monitor: availability %, jumlah insiden, total downtime, dan MTTR — dihitung berdasarkan periode 7/30/90 hari
+- **Settings** — konfigurasi interval pengecekan API health (preset: 10/15/30 menit, 1 jam, 6 jam) langsung dari halaman Settings tanpa edit kode
 - **Dark Mode** — toggle tema gelap/terang dengan penyimpanan di localStorage
-- **Scheduler** — pengecekan berjalan otomatis sesuai interval yang dikonfigurasi per monitor; interval api health-check bisa diatur langsung dari halaman Settings
+- **Scheduler** — pengecekan monitor dan API health berjalan otomatis sesuai interval yang dikonfigurasi
 
 ---
 
@@ -46,6 +47,29 @@ serta notifikasi otomatis via Telegram dan WhatsApp.
 | Containerisasi | Docker + Docker Compose |
 | Process Manager | Supervisor (nginx + php-fpm + scheduler) |
 | Web Server | Nginx |
+
+---
+
+## Login Default
+
+Setelah instalasi dan menjalankan seeder, gunakan kredensial berikut:
+
+| Field | Value |
+| --- | --- |
+| **Email** | `admin@watchtower.local` |
+| **Password** | `watchtower123` |
+
+Jalankan seeder jika belum ada user:
+
+```bash
+php artisan db:seed
+```
+
+> **Penting:** Segera ganti password setelah login pertama. Ganti via tinker:
+
+```bash
+php artisan tinker --execute="App\Models\User::where('email','admin@watchtower.local')->first()->update(['password'=>bcrypt('password_baru')]);"
+```
 
 ---
 
@@ -267,12 +291,15 @@ BPJS_PCARE_URL=https://apijkn.kesehatan.go.id/pcare-rest
 SATUSEHAT_BASE_URL=https://api-satusehat.kemkes.go.id
 ```
 
-### 4. Jalankan migrasi
+### 4. Jalankan migrasi dan seeder
 
 ```bash
 php artisan migrate
+php artisan db:seed
 php artisan storage:link
 ```
+
+Seeder membuat user admin default (`admin@watchtower.local` / `watchtower123`).
 
 ### 5. Optimasi untuk production
 
@@ -293,6 +320,8 @@ crontab -e
 ```cron
 * * * * * cd /path/to/uptime-monitor && php artisan schedule:run >> /dev/null 2>&1
 ```
+
+Scheduler akan menjalankan `monitor:check` setiap menit (sesuai interval per monitor) dan `api:health-check` sesuai interval yang dikonfigurasi di **Settings**.
 
 ### 7. Konfigurasi Web Server
 
@@ -354,21 +383,6 @@ php artisan storage:link
 
 Berikut langkah tambahan yang mungkin diperlukan tergantung dari versi mana kamu update:
 
-#### Versi dengan Status Page Builder (tambah kolom `sections`)
-
-Jika sebelumnya sudah menggunakan fitur Status Pages, jalankan migration untuk menambah kolom sections:
-
-```bash
-php artisan migrate --force
-```
-
-Migration ini bersifat non-destructive — data `monitor_ids` lama tetap ada dan halaman status publik yang sudah dibuat tetap berjalan (backward compatible).
-
-#### Versi dengan Webhook Channel
-
-Tidak ada perubahan schema database. Cukup jalankan langkah standar di atas.
-Setelah update, pilihan tipe `Webhook` sudah muncul di form **Notifikasi → Tambah Channel**.
-
 #### Versi dengan Incident Tracking & SLA Report
 
 Jalankan migration untuk menambah tabel `incidents` dan kolom-kolomnya:
@@ -388,6 +402,21 @@ php artisan migrate --force
 ```
 
 Halaman status publik yang sudah ada tetap berjalan tanpa perubahan. Untuk menampilkan status API di halaman yang sudah ada, edit status page dan centang layanan API yang diinginkan.
+
+#### Versi dengan Status Page Builder (tambah kolom `sections`)
+
+Jika sebelumnya sudah menggunakan fitur Status Pages, jalankan migration untuk menambah kolom sections:
+
+```bash
+php artisan migrate --force
+```
+
+Migration ini bersifat non-destructive — data `monitor_ids` lama tetap ada dan halaman status publik yang sudah dibuat tetap berjalan.
+
+#### Versi dengan Webhook Channel
+
+Tidak ada perubahan schema database. Cukup jalankan langkah standar di atas.
+Setelah update, pilihan tipe `Webhook` sudah muncul di form **Notifikasi → Tambah Channel**.
 
 #### Versi dengan Multi-tipe Monitor (Ping, TCP, DNS, Push)
 
@@ -413,11 +442,13 @@ docker compose up -d --build
 
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --force
+docker compose exec app php artisan db:seed
 docker compose exec app php artisan config:cache
 docker compose exec app php artisan route:cache
 ```
 
 Aplikasi dapat diakses di `http://localhost:8080` (atau sesuai `APP_PORT` di `.env`).
+Login: `admin@watchtower.local` / `watchtower123`
 
 ### Update deployment Docker
 
@@ -513,7 +544,7 @@ uptime-monitor/
 
 ---
 
-## Cara Menambah Monitor
+## Cara Menggunakan Fitur Utama
 
 ### Monitor website/server biasa
 
@@ -524,7 +555,8 @@ Masuk ke **Dashboard → Tambah Monitor**, isi:
 - **URL / Host** — URL lengkap untuk HTTP/Keyword, hostname atau IP untuk Ping/TCP
 - **Interval** — seberapa sering dicek (menit)
 - **Timeout** — batas waktu tunggu respons (detik)
-- **Channel Notifikasi** — centang channel (WA/Telegram) yang akan menerima alert
+- **Retry** — jumlah kegagalan berturut-turut sebelum dianggap DOWN dan notifikasi dikirim
+- **Channel Notifikasi** — centang channel (WA/Telegram/Webhook) yang akan menerima alert
 
 IP address domain akan otomatis di-resolve dan ditampilkan di halaman detail monitor.
 
@@ -540,6 +572,14 @@ Masuk ke **Status Pages → Buat Status Page**:
 6. Klik **Buat Status Page** — halaman publik langsung bisa diakses di `/status/{slug}`
 
 > Satu halaman status bisa menampilkan monitor uptime **dan** status API sekaligus, tanpa perlu membuat halaman terpisah.
+
+### Maintenance Window
+
+Masuk ke **Maintenance → Tambah Maintenance Window**:
+
+- Tentukan nama, monitor yang terdampak, tanggal/waktu mulai dan selesai
+- Selama maintenance window aktif: notifikasi tidak dikirim dan insiden tidak dicatat otomatis
+- Tampil badge "Maintenance" di halaman dashboard untuk monitor yang sedang dalam jadwal maintenance
 
 ### Incident Tracking
 
@@ -558,6 +598,9 @@ Setiap insiden memiliki:
 | Judul | Ringkasan insiden (opsional untuk monitor, wajib untuk manual/client) |
 | Durasi | Dihitung otomatis dari `started_at` ke `resolved_at` |
 | Catatan | Root cause, tindakan yang diambil, dll |
+| Pelapor | Nama dan kontak pelapor (khusus Laporan Client) |
+
+Filter tersedia berdasarkan kategori, monitor, dan status (Berlangsung / Selesai).
 
 ### SLA Report
 
@@ -571,6 +614,20 @@ Masuk ke **SLA Report** untuk melihat metrik per monitor:
 | MTTR | Mean Time To Recover — rata-rata durasi insiden yang sudah selesai |
 
 Pilih periode: **7 hari / 30 hari / 90 hari**.
+
+### Pengaturan Interval API Health Check
+
+Masuk ke **Settings** untuk mengatur interval pengecekan API health:
+
+| Preset | Jadwal |
+| --- | --- |
+| 10 menit | `*/10 * * * *` |
+| 15 menit | `*/15 * * * *` |
+| 30 menit | `*/30 * * * *` |
+| 1 jam | `0 */1 * * *` |
+| 6 jam (4x/hari) | `0 */6 * * *` |
+
+Perubahan interval langsung efektif pada siklus scheduler berikutnya tanpa restart.
 
 ---
 
@@ -621,7 +678,7 @@ Aplikasi ini **tidak menyimpan** credential apapun (cons_id, secret_key, client_
 ## Artisan Commands
 
 ```bash
-# Cek semua monitor uptime (HTTP & Ping)
+# Cek semua monitor uptime (HTTP, Ping, TCP, DNS, dll)
 php artisan monitor:check
 
 # Cek monitor tertentu berdasarkan ID
@@ -632,6 +689,9 @@ php artisan api:health-check
 
 # Cek service tertentu
 php artisan api:health-check --service=bpjs_vclaim
+
+# Lihat jadwal scheduler yang aktif
+php artisan schedule:list
 ```
 
 ---
