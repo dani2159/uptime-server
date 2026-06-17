@@ -22,10 +22,12 @@ serta notifikasi otomatis via Telegram dan WhatsApp.
 - **Channel Notifikasi per Monitor** — pilih channel mana saja yang aktif menerima alert (WA, Telegram, Webhook, atau kombinasinya) saat menambah/edit monitor
 - **History & Log** — riwayat pengecekan disimpan ke database dengan grafik response time 48 jam
 - **Heartbeat Bar** — visualisasi 90 pengecekan terakhir per monitor
-- **Status Page Builder** — buat halaman status publik dengan sections/grup monitor, bisa diatur urutan dan kelompoknya seperti Uptime Kuma
+- **Status Page Builder** — buat halaman status publik dengan sections/grup monitor dan layanan API dalam satu URL; tampilan bisa dikombinasikan antara monitor uptime dan service health
 - **Maintenance Window** — jadwalkan jendela maintenance agar notifikasi tidak dikirim saat downtime terjadwal
+- **Incident Tracking** — insiden tercatat otomatis saat monitor DOWN/UP; bisa ditambah manual untuk insiden umum IT atau laporan error dari client, lengkap dengan kategori, tingkat keparahan (severity), dan informasi pelapor
+- **SLA Report** — laporan availability per monitor: availability %, jumlah insiden, total downtime, dan MTTR — dihitung berdasarkan periode 7/30/90 hari
 - **Dark Mode** — toggle tema gelap/terang dengan penyimpanan di localStorage
-- **Scheduler** — pengecekan berjalan otomatis sesuai interval yang dikonfigurasi per monitor
+- **Scheduler** — pengecekan berjalan otomatis sesuai interval yang dikonfigurasi per monitor; interval api health-check bisa diatur langsung dari halaman Settings
 
 ---
 
@@ -367,6 +369,26 @@ Migration ini bersifat non-destructive — data `monitor_ids` lama tetap ada dan
 Tidak ada perubahan schema database. Cukup jalankan langkah standar di atas.
 Setelah update, pilihan tipe `Webhook` sudah muncul di form **Notifikasi → Tambah Channel**.
 
+#### Versi dengan Incident Tracking & SLA Report
+
+Jalankan migration untuk menambah tabel `incidents` dan kolom-kolomnya:
+
+```bash
+php artisan migrate --force
+```
+
+Migration bersifat non-destructive. Nav baru **Insiden** dan **SLA Report** akan muncul di header.
+
+#### Versi dengan Status Pages + API Health terintegrasi
+
+Jalankan migration untuk menambah kolom `service_keys` ke tabel `status_pages`:
+
+```bash
+php artisan migrate --force
+```
+
+Halaman status publik yang sudah ada tetap berjalan tanpa perubahan. Untuk menampilkan status API di halaman yang sudah ada, edit status page dan centang layanan API yang diinginkan.
+
 #### Versi dengan Multi-tipe Monitor (Ping, TCP, DNS, Push)
 
 Jika migration `alter_monitors_add_multi_type` belum dijalankan:
@@ -513,8 +535,42 @@ Masuk ke **Status Pages → Buat Status Page**:
 1. Isi judul, slug URL, dan deskripsi
 2. Di section **Builder**, tambah grup/section (contoh: "Layanan Web", "API Services")
 3. Tambahkan monitor ke dalam setiap section dari dropdown
-4. Atur urutan section dan monitor dengan tombol panah atas/bawah
-5. Klik **Buat Status Page** — halaman publik langsung bisa diakses di `/status/{slug}`
+4. Pilih layanan API (BPJS, Satu Sehat, dll) yang ingin ditampilkan di bagian atas halaman
+5. Atur urutan section dan monitor dengan tombol panah atas/bawah
+6. Klik **Buat Status Page** — halaman publik langsung bisa diakses di `/status/{slug}`
+
+> Satu halaman status bisa menampilkan monitor uptime **dan** status API sekaligus, tanpa perlu membuat halaman terpisah.
+
+### Incident Tracking
+
+Masuk ke **Insiden** untuk melihat riwayat insiden:
+
+- Insiden monitor down/up tercatat **otomatis** saat pengecekan menemukan transisi status
+- Tambah insiden **manual** untuk kejadian yang tidak terdeteksi monitor (pemadaman listrik, gangguan jaringan internal, dll)
+- Catat **laporan error dari client** lengkap dengan nama dan kontak pelapor
+
+Setiap insiden memiliki:
+
+| Field | Keterangan |
+| --- | --- |
+| Kategori | `monitor_downtime` / `Insiden Umum IT` / `Laporan Client` |
+| Severity | Low / Medium / High / Critical |
+| Judul | Ringkasan insiden (opsional untuk monitor, wajib untuk manual/client) |
+| Durasi | Dihitung otomatis dari `started_at` ke `resolved_at` |
+| Catatan | Root cause, tindakan yang diambil, dll |
+
+### SLA Report
+
+Masuk ke **SLA Report** untuk melihat metrik per monitor:
+
+| Metrik | Keterangan |
+| --- | --- |
+| Availability % | `(total periode - downtime) / total periode × 100` |
+| Jumlah Insiden | Hanya insiden kategori `monitor_downtime` |
+| Total Downtime | Akumulasi durasi semua insiden monitor di periode yang dipilih |
+| MTTR | Mean Time To Recover — rata-rata durasi insiden yang sudah selesai |
+
+Pilih periode: **7 hari / 30 hari / 90 hari**.
 
 ---
 
