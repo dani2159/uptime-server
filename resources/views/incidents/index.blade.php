@@ -25,7 +25,8 @@
         <option value="">Semua Kategori</option>
         <option value="monitor_downtime" {{ request('category') === 'monitor_downtime' ? 'selected' : '' }}>Insiden Monitor</option>
         <option value="general"          {{ request('category') === 'general'          ? 'selected' : '' }}>Insiden Umum IT</option>
-        <option value="client_report"    {{ request('category') === 'client_report'    ? 'selected' : '' }}>Laporan Client</option>
+        <option value="client_report"    {{ request('category') === 'client_report'    ? 'selected' : '' }}>Laporan Error Client</option>
+        <option value="work_order"       {{ request('category') === 'work_order'       ? 'selected' : '' }}>Work Order</option>
     </select>
     <select name="monitor_id" class="text-sm border border-sky-200 rounded-xl px-3 py-2" onchange="this.form.submit()">
         <option value="">Semua Monitor</option>
@@ -64,12 +65,14 @@
                     'monitor_downtime' => 'bg-sky-100 text-sky-700',
                     'general'          => 'bg-amber-100 text-amber-700',
                     'client_report'    => 'bg-rose-100 text-rose-700',
+                    'work_order'       => 'bg-violet-100 text-violet-700',
                     default            => 'bg-gray-100 text-gray-600',
                 };
                 $catLabel = match($incident->category) {
                     'monitor_downtime' => 'Monitor',
                     'general'          => 'Umum IT',
-                    'client_report'    => 'Laporan Client',
+                    'client_report'    => 'Laporan Error',
+                    'work_order'       => 'Work Order',
                     default            => $incident->category,
                 };
                 $sevColor = match($incident->severity ?? 'medium') {

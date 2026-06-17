@@ -14,7 +14,8 @@
     <select name="category" x-model="category" class="{{ $inp }}">
         <option value="monitor_downtime" {{ $initCategory === 'monitor_downtime' ? 'selected' : '' }}>Insiden Monitor (Down/Up)</option>
         <option value="general"          {{ $initCategory === 'general'          ? 'selected' : '' }}>Insiden Umum IT</option>
-        <option value="client_report"    {{ $initCategory === 'client_report'    ? 'selected' : '' }}>Laporan Error dari Client</option>
+        <option value="client_report"    {{ $initCategory === 'client_report'    ? 'selected' : '' }}>Laporan Error / Keluhan Client</option>
+        <option value="work_order"       {{ $initCategory === 'work_order'       ? 'selected' : '' }}>Work Order / Permintaan Layanan</option>
     </select>
     @error('category')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
@@ -81,16 +82,16 @@
     @error('note')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
 
-{{-- Informasi pelapor — hanya tampil untuk laporan client --}}
-<div class="grid grid-cols-2 gap-4 mb-4" x-show="category === 'client_report'" x-cloak>
+{{-- Informasi pelapor/pemohon — tampil untuk laporan client dan work order --}}
+<div class="grid grid-cols-2 gap-4 mb-4" x-show="category === 'client_report' || category === 'work_order'" x-cloak>
     <div>
-        <label class="{{ $lbl }}">Nama Pelapor</label>
+        <label class="{{ $lbl }}" x-text="category === 'work_order' ? 'Nama Pemohon' : 'Nama Pelapor'">Nama Pelapor</label>
         <input type="text" name="reporter_name" value="{{ $val('reporter_name') }}"
-               class="{{ $inp }}" placeholder="Nama client / user pelapor">
+               class="{{ $inp }}" :placeholder="category === 'work_order' ? 'Nama client / user pemohon WO' : 'Nama client / user pelapor'">
         @error('reporter_name')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
     <div>
-        <label class="{{ $lbl }}">Kontak Pelapor (No. HP / Email)</label>
+        <label class="{{ $lbl }}">Kontak (No. HP / Email)</label>
         <input type="text" name="reporter_contact" value="{{ $val('reporter_contact') }}"
                class="{{ $inp }}" placeholder="Nomor HP atau email">
         @error('reporter_contact')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror

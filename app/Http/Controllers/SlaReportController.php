@@ -49,30 +49,33 @@ class SlaReportController extends Controller
         $allIncidents = Incident::where('started_at', '>=', $periodStart)->get();
 
         // Bar chart: insiden per interval waktu, stacked by category
-        $chartLabels  = [];
-        $chartMonitor = [];
-        $chartGeneral = [];
-        $chartClient  = [];
+        $chartLabels    = [];
+        $chartMonitor   = [];
+        $chartGeneral   = [];
+        $chartClient    = [];
+        $chartWorkOrder = [];
 
         if ($days === 7) {
             for ($i = $days - 1; $i >= 0; $i--) {
-                $date = now()->subDays($i)->toDateString();
-                $chartLabels[]  = now()->subDays($i)->format('d M');
+                $date   = now()->subDays($i)->toDateString();
                 $bucket = $allIncidents->filter(fn ($inc) => $inc->started_at->toDateString() === $date);
-                $chartMonitor[] = $bucket->where('category', 'monitor_downtime')->count();
-                $chartGeneral[] = $bucket->where('category', 'general')->count();
-                $chartClient[]  = $bucket->where('category', 'client_report')->count();
+                $chartLabels[]    = now()->subDays($i)->format('d M');
+                $chartMonitor[]   = $bucket->where('category', 'monitor_downtime')->count();
+                $chartGeneral[]   = $bucket->where('category', 'general')->count();
+                $chartClient[]    = $bucket->where('category', 'client_report')->count();
+                $chartWorkOrder[] = $bucket->where('category', 'work_order')->count();
             }
         } else {
             $weeks = $days === 30 ? 5 : 13;
             for ($i = $weeks - 1; $i >= 0; $i--) {
                 $wStart = now()->copy()->startOfWeek()->subWeeks($i);
                 $wEnd   = $wStart->copy()->endOfWeek();
-                $chartLabels[]  = $wStart->format('d M');
                 $bucket = $allIncidents->filter(fn ($inc) => $inc->started_at->between($wStart, $wEnd));
-                $chartMonitor[] = $bucket->where('category', 'monitor_downtime')->count();
-                $chartGeneral[] = $bucket->where('category', 'general')->count();
-                $chartClient[]  = $bucket->where('category', 'client_report')->count();
+                $chartLabels[]    = $wStart->format('d M');
+                $chartMonitor[]   = $bucket->where('category', 'monitor_downtime')->count();
+                $chartGeneral[]   = $bucket->where('category', 'general')->count();
+                $chartClient[]    = $bucket->where('category', 'client_report')->count();
+                $chartWorkOrder[] = $bucket->where('category', 'work_order')->count();
             }
         }
 
@@ -84,10 +87,10 @@ class SlaReportController extends Controller
             'low'      => $allIncidents->where('severity', 'low')->count(),
         ];
 
-        // Summary card: insiden operasional (general + client_report)
-        $opIncidents   = $allIncidents->whereIn('category', ['general', 'client_report']);
-        $opClosed      = $opIncidents->where('status', 'closed');
-        $opMttr        = $opClosed->count() > 0 ? (int) $opClosed->avg('duration_seconds') : 0;
+        // Summary cards: insiden operasional (general + client_report + work_order)
+        $opIncidents = $allIncidents->whereIn('category', ['general', 'client_report', 'work_order']);
+        $opClosed    = $opIncidents->where('status', 'closed');
+        $opMttr      = $opClosed->count() > 0 ? (int) $opClosed->avg('duration_seconds') : 0;
 
         $opSummary = [
             'total'         => $opIncidents->count(),
@@ -96,13 +99,15 @@ class SlaReportController extends Controller
             'mttr_seconds'  => $opMttr,
             'general'       => $opIncidents->where('category', 'general')->count(),
             'client_report' => $opIncidents->where('category', 'client_report')->count(),
+            'work_order'    => $opIncidents->where('category', 'work_order')->count(),
         ];
 
         $chartData = [
-            'labels'  => $chartLabels,
-            'monitor' => $chartMonitor,
-            'general' => $chartGeneral,
-            'client'  => $chartClient,
+            'labels'     => $chartLabels,
+            'monitor'    => $chartMonitor,
+            'general'    => $chartGeneral,
+            'client'     => $chartClient,
+            'work_order' => $chartWorkOrder,
         ];
 
         return view('sla-report.index', compact('rows', 'days', 'chartData', 'severityCounts', 'opSummary'));

@@ -40,7 +40,7 @@ class IncidentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category'        => 'required|in:monitor_downtime,general,client_report',
+            'category'        => 'required|in:monitor_downtime,general,client_report,work_order',
             'monitor_id'      => 'required_if:category,monitor_downtime|nullable|exists:monitors,id',
             'title'           => 'required_unless:category,monitor_downtime|nullable|string|max:150',
             'severity'        => 'required|in:low,medium,high,critical',
@@ -75,7 +75,7 @@ class IncidentController extends Controller
     public function update(Request $request, Incident $incident)
     {
         $data = $request->validate([
-            'category'        => 'required|in:monitor_downtime,general,client_report',
+            'category'        => 'required|in:monitor_downtime,general,client_report,work_order',
             'monitor_id'      => 'required_if:category,monitor_downtime|nullable|exists:monitors,id',
             'title'           => 'required_unless:category,monitor_downtime|nullable|string|max:150',
             'severity'        => 'required|in:low,medium,high,critical',

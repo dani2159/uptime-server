@@ -99,7 +99,8 @@
         <p class="text-2xl font-bold text-gray-800">{{ $opSummary['total'] }}</p>
         <p class="text-xs text-gray-400 mt-1">
             <span class="text-amber-600 font-medium">{{ $opSummary['general'] }}</span> Umum &middot;
-            <span class="text-rose-600 font-medium">{{ $opSummary['client_report'] }}</span> Client
+            <span class="text-rose-600 font-medium">{{ $opSummary['client_report'] }}</span> Error &middot;
+            <span class="text-violet-600 font-medium">{{ $opSummary['work_order'] }}</span> WO
         </p>
     </div>
     <div class="bg-white rounded-2xl border border-sky-100 shadow-sm px-5 py-4">
@@ -120,10 +121,10 @@
         <p class="text-xs text-gray-400 mb-1">Severity Tertinggi (aktif)</p>
         @php
             $criticalOpen = \App\Models\Incident::where('status','open')
-                ->whereIn('category',['general','client_report'])
+                ->whereIn('category',['general','client_report','work_order'])
                 ->where('severity','critical')->count();
             $highOpen = \App\Models\Incident::where('status','open')
-                ->whereIn('category',['general','client_report'])
+                ->whereIn('category',['general','client_report','work_order'])
                 ->where('severity','high')->count();
         @endphp
         @if($criticalOpen > 0)
@@ -191,9 +192,15 @@ new Chart(document.getElementById('barChart'), {
                 borderRadius: 4,
             },
             {
-                label: 'Laporan Client',
+                label: 'Laporan Error Client',
                 data: @json($chartData['client']),
                 backgroundColor: 'rgba(244,63,94,0.65)',
+                borderRadius: 4,
+            },
+            {
+                label: 'Work Order',
+                data: @json($chartData['work_order']),
+                backgroundColor: 'rgba(139,92,246,0.7)',
                 borderRadius: 4,
             },
         ]
