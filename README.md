@@ -95,6 +95,69 @@ Gunakan tipe Ping untuk server yang memblokir HTTP tetapi mengizinkan ICMP (misa
 
 ---
 
+## Insiden Otomatis
+
+Insiden dibuat otomatis oleh command `monitor:check` — **bukan** saat pertama kali DOWN, melainkan saat jumlah kegagalan berturut-turut mencapai nilai **Retry** yang dikonfigurasi di monitor.
+
+| Setting Retry | Perilaku |
+| --- | --- |
+| `Retry = 1` | 1× check DOWN → insiden langsung dibuat |
+| `Retry = 3` | butuh 3× check DOWN berturut-turut → insiden dibuat |
+
+Ini disengaja agar gangguan sesaat (packet loss, timeout singkat) tidak langsung membanjiri daftar insiden.
+
+**Saat manual check:**
+
+```bash
+php artisan monitor:check --id=1
+```
+
+Setiap run menambah `current_retries`. Begitu `current_retries === retry_count`, insiden dibuat pada run itu juga — langsung terlihat di halaman `/incidents`.
+
+**Insiden ditutup otomatis** saat check berikutnya mengembalikan status UP (setelah sebelumnya confirmed DOWN), dengan `duration_seconds` terisi otomatis.
+
+**Agar insiden berjalan otomatis tanpa intervensi manual**, scheduler harus aktif:
+
+```bash
+# Development (lokal)
+php artisan schedule:work
+
+# Production (Linux) — tambahkan ke crontab
+* * * * * cd /path/to/uptime-monitor && php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+## Monitoring ISP / Konektivitas Jaringan
+
+Untuk monitoring ISP, gunakan tipe **Ping** ke beberapa target sekaligus agar bisa membedakan letak masalah:
+
+| Monitor | Target | Artinya jika DOWN |
+| --- | --- | --- |
+| Gateway Lokal | IP gateway lokal, contoh `192.168.1.1` | Router/switch lokal bermasalah |
+| First-hop ISP | IP pertama dari traceroute ke internet | ISP upstream bermasalah |
+| Internet Umum | `8.8.8.8` (Google) atau `1.1.1.1` (Cloudflare) | Koneksi internet tidak bisa dijangkau |
+
+**Cara cari IP first-hop ISP (Windows):**
+
+```cmd
+tracert 8.8.8.8
+```
+
+Lihat hop ke-2 atau ke-3 — itulah IP router ISP yang bisa digunakan sebagai target monitor.
+
+**Rekomendasi setup ISP monitoring:**
+
+1. Tambah monitor Ping ke `192.168.1.1` (atau IP gateway jaringan lokal) → nama: "Gateway Lokal"
+2. Tambah monitor Ping ke IP hop pertama ISP dari hasil tracert → nama: "ISP Gateway"
+3. Tambah monitor Ping ke `8.8.8.8` → nama: "Internet (Google DNS)"
+
+Dengan tiga monitor ini, jika hanya "Internet (Google DNS)" yang DOWN tetapi dua lainnya UP, masalah ada di sisi ISP atau routing ke internet — bukan jaringan lokal.
+
+> **Catatan:** Beberapa ISP memblokir ICMP ping dari luar. Jika ping ke IP ISP selalu timeout padahal internet berjalan normal, coba ping ke IP server publik ISP yang diketahui mengizinkan ICMP.
+
+---
+
 ## Tipe Monitor
 
 Saat menambah monitor, pilih tipe sesuai kebutuhan:
