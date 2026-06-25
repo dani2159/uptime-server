@@ -17,11 +17,13 @@ class Monitor extends Model
         'uptime_percentage', 'uptime_24h', 'uptime_7d', 'uptime_30d',
         'ssl_expiry_at', 'ssl_valid', 'ssl_days_remaining',
         'notification_channels',
+        'response_time_warning', 'last_is_slow',
     ];
 
     protected $casts = [
         'is_active'             => 'boolean',
         'ssl_valid'             => 'boolean',
+        'last_is_slow'          => 'boolean',
         'last_checked_at'       => 'datetime',
         'last_down_at'          => 'datetime',
         'last_push_at'          => 'datetime',

@@ -54,6 +54,7 @@ class CheckMonitors extends Command
             $this->resolver->resolve($monitor);
 
             $monitor->refresh();
+            $this->handleSlowAlert($monitor, $result);
             $this->handleRetryAndNotify($monitor, $previousStatus, $result['status']);
 
             $icon = $result['status'] === 'up' ? '✓' : '✗';
@@ -61,6 +62,19 @@ class CheckMonitors extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function handleSlowAlert(Monitor $monitor, array $result): void
+    {
+        $isSlow     = $result['is_slow'] ?? false;
+        $wasSlow    = $monitor->last_is_slow;
+        $inMaint    = MaintenanceWindow::isMonitorInMaintenance($monitor);
+
+        $monitor->update(['last_is_slow' => $isSlow]);
+
+        if ($isSlow && !$wasSlow && !$inMaint) {
+            $this->notifier->notifySlow($monitor);
+        }
     }
 
     private function handleRetryAndNotify(Monitor $monitor, string $previousStatus, string $currentStatus): void

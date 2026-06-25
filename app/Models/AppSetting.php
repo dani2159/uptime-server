@@ -36,6 +36,12 @@ class AppSetting extends Model
                 "URL: {url}\n" .
                 "Durasi down: {duration}\n" .
                 "Waktu: {timestamp}",
+
+            'notif_slow_body' =>
+                "🟡 <b>{name}</b> LAMBAT\n" .
+                "URL: {url}\n" .
+                "Response: <b>{response_time}</b> (batas: {threshold}ms)\n" .
+                "Waktu: {timestamp}",
         ];
     }
 }

@@ -53,9 +53,10 @@ class MonitorController extends Controller
             'push_token'            => 'nullable|string|max:100',
             'dns_resolve_type'      => 'nullable|in:A,AAAA,CNAME,MX',
             'dns_expected_value'    => 'nullable|string|max:255',
-            'notification_channels' => 'nullable|array',
-            'tags'                  => 'nullable|array',
-            'tags.*'                => 'integer|exists:tags,id',
+            'notification_channels'  => 'nullable|array',
+            'tags'                   => 'nullable|array',
+            'tags.*'                 => 'integer|exists:tags,id',
+            'response_time_warning'  => 'nullable|integer|min:100|max:60000',
         ]);
 
         $monitor = Monitor::create($data);
@@ -118,10 +119,11 @@ class MonitorController extends Controller
             'push_token'            => 'nullable|string|max:100',
             'dns_resolve_type'      => 'nullable|in:A,AAAA,CNAME,MX',
             'dns_expected_value'    => 'nullable|string|max:255',
-            'is_active'             => 'boolean',
-            'notification_channels' => 'nullable|array',
-            'tags'                  => 'nullable|array',
-            'tags.*'                => 'integer|exists:tags,id',
+            'is_active'              => 'boolean',
+            'notification_channels'  => 'nullable|array',
+            'tags'                   => 'nullable|array',
+            'tags.*'                 => 'integer|exists:tags,id',
+            'response_time_warning'  => 'nullable|integer|min:100|max:60000',
         ]);
 
         $monitor->update($data);

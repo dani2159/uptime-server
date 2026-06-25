@@ -30,6 +30,12 @@
                    min="1" max="1440" class="{{ $inp }}">
         </div>
         <div>
+            <label class="{{ $lbl }}">Batas Lambat (ms)</label>
+            <input type="number" name="response_time_warning" value="{{ $val('response_time_warning') }}"
+                   min="100" max="60000" placeholder="Kosong = nonaktif" class="{{ $inp }}">
+            <p class="text-xs text-gray-400 mt-1">Alert jika response &gt; nilai ini</p>
+        </div>
+        <div>
             <label class="{{ $lbl }}">Timeout (detik)</label>
             <input type="number" name="timeout" value="{{ $val('timeout', 10) }}"
                    min="1" max="60" class="{{ $inp }}">

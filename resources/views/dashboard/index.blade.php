@@ -129,6 +129,9 @@
 
             {{-- Uptime + mini bars --}}
             <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                @if($monitor->last_is_slow && $isUp)
+                <span class="text-[9px] px-1.5 py-0 rounded-full font-bold bg-yellow-400 text-white leading-4">SLOW</span>
+                @endif
                 <span class="text-[11px] font-bold
                     {{ $isUp ? 'text-green-500' : ($isDown ? 'text-red-500' : 'text-gray-400 dark:text-slate-500') }}">
                     {{ is_null($uptime) ? '—' : number_format((float)$uptime, 0) . '%' }}

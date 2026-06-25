@@ -21,6 +21,21 @@ class NotificationService
         $this->dispatch($monitor, 'UP');
     }
 
+    public function notifySlow(Monitor $monitor): void
+    {
+        $vars = [
+            '{name}'          => $monitor->name,
+            '{url}'           => $monitor->url,
+            '{response_time}' => $monitor->last_response_time . 'ms',
+            '{threshold}'     => $monitor->response_time_warning,
+            '{timestamp}'     => now()->format('d-m-Y H:i:s'),
+        ];
+        $defaults = AppSetting::defaults();
+        $htmlMsg  = str_replace(array_keys($vars), array_values($vars),
+            AppSetting::get('notif_slow_body', $defaults['notif_slow_body']));
+        $this->send($monitor, 'monitor.slow', $htmlMsg, strip_tags($htmlMsg));
+    }
+
     public function notifySslExpiry(Monitor $monitor): void
     {
         $days   = $monitor->ssl_days_remaining;

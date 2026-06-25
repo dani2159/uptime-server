@@ -9,7 +9,7 @@ class UptimeChecker
 {
     public function check(Monitor $monitor): array
     {
-        return match ($monitor->type) {
+        $result = match ($monitor->type) {
             'ping'    => $this->checkPing($monitor),
             'keyword' => $this->checkKeyword($monitor),
             'tcp'     => $this->checkTcp($monitor),
@@ -17,6 +17,12 @@ class UptimeChecker
             'push'    => $this->checkPush($monitor),
             default   => $this->checkHttp($monitor),
         };
+
+        $result['is_slow'] = $monitor->response_time_warning
+            && $result['response_time'] > $monitor->response_time_warning
+            && $result['status'] === 'up';
+
+        return $result;
     }
 
     private function checkHttp(Monitor $monitor): array
