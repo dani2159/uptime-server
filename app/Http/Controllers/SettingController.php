@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppSetting;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -48,6 +49,27 @@ class SettingController extends Controller
             }
             return ['ip' => null, 'isp' => null, 'org' => null, 'city' => null, 'region' => null, 'country' => null, 'error' => 'Gagal mengambil info IP'];
         });
+    }
+
+    public function notifications()
+    {
+        $defaults  = AppSetting::defaults();
+        $down      = AppSetting::get('notif_down_body',      $defaults['notif_down_body']);
+        $recovered = AppSetting::get('notif_recovered_body', $defaults['notif_recovered_body']);
+        return view('settings.notifications', compact('down', 'recovered', 'defaults'));
+    }
+
+    public function saveNotifications(Request $request)
+    {
+        $request->validate([
+            'notif_down_body'      => 'required|string|max:2000',
+            'notif_recovered_body' => 'required|string|max:2000',
+        ]);
+
+        AppSetting::set('notif_down_body',      $request->input('notif_down_body'));
+        AppSetting::set('notif_recovered_body', $request->input('notif_recovered_body'));
+
+        return back()->with('success', 'Template notifikasi berhasil disimpan.');
     }
 
     public function update(Request $request)

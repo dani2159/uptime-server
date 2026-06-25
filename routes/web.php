@@ -47,4 +47,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     Route::post('/settings/ip-info', [SettingController::class, 'ipInfo'])->name('settings.ip-info');
+    Route::get('/settings/notifications', [SettingController::class, 'notifications'])->name('settings.notifications');
+    Route::post('/settings/notifications', [SettingController::class, 'saveNotifications'])->name('settings.notifications.save');
 });

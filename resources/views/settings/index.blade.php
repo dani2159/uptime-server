@@ -172,5 +172,22 @@
         </div>
 
     </form>
+
+    {{-- Link ke template notifikasi --}}
+    <div class="mt-4 bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm overflow-hidden">
+        <a href="{{ route('settings.notifications') }}"
+           class="flex items-center justify-between px-5 py-4 hover:bg-sky-50/40 dark:hover:bg-slate-700/30 transition-colors group">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                    <i class="fa-solid fa-bell text-sky-500 text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-slate-100">Template Notifikasi</p>
+                    <p class="text-xs text-gray-400 dark:text-slate-500">Kustomisasi pesan DOWN & Recovery</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300 dark:text-slate-600 group-hover:text-sky-400 text-xs transition-colors"></i>
+        </a>
+    </div>
 </div>
 @endsection

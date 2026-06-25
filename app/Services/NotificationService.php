@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\AppSetting;
+use App\Models\Incident;
 use App\Models\Monitor;
 use App\Models\NotificationChannel;
 use Illuminate\Support\Facades\Http;
@@ -29,35 +31,58 @@ class NotificationService
             . "Monitor: {$monitor->name}\nURL: {$monitor->url}\n"
             . "Sisa: {$days} hari (expire: {$expiry})";
 
-        $this->send($monitor, 'monitor.ssl_expiry', $plain,
-            telegramMsg: "⚠️ <b>SSL Cert akan kedaluwarsa!</b>\n"
-                . "Monitor: {$monitor->name}\nURL: {$monitor->url}\n"
-                . "Sisa: <b>{$days} hari</b> (expire: {$expiry})",
-            whatsappMsg: "⚠️ *SSL Cert akan kedaluwarsa!*\n"
-                . "Monitor: {$monitor->name}\nURL: {$monitor->url}\n"
-                . "Sisa: *{$days} hari* (expire: {$expiry})"
-        );
+        $htmlMsg = "⚠️ <b>SSL Cert akan kedaluwarsa!</b>\n"
+            . "Monitor: {$monitor->name}\nURL: {$monitor->url}\n"
+            . "Sisa: <b>{$days} hari</b> (expire: {$expiry})\nWaktu: {$time}";
+
+        $this->send($monitor, 'monitor.ssl_expiry', $htmlMsg, $plain);
     }
 
     // ─── private ──────────────────────────────────────────────────────────────
 
-    private function dispatch(Monitor $monitor, string $status): void
+    private function renderTemplate(string $key, array $vars): string
     {
-        $emoji = $status === 'DOWN' ? '🔴' : '🟢';
-        $time  = now()->format('d-m-Y H:i:s');
-
-        $plain = "{$emoji} {$monitor->name} is {$status}\nURL: {$monitor->url}\nWaktu: {$time}";
-
-        $this->send(
-            $monitor,
-            'monitor.' . strtolower($status),
-            $plain,
-            telegramMsg: "{$emoji} <b>{$monitor->name}</b> is <b>{$status}</b>\nURL: {$monitor->url}\nWaktu: {$time}",
-            whatsappMsg: "{$emoji} *{$monitor->name}* is *{$status}*\nURL: {$monitor->url}\nWaktu: {$time}"
-        );
+        $defaults = AppSetting::defaults();
+        $template = AppSetting::get($key, $defaults[$key] ?? '');
+        return str_replace(array_keys($vars), array_values($vars), $template);
     }
 
-    private function send(Monitor $monitor, string $event, string $plain, string $telegramMsg, string $whatsappMsg): void
+    private function dispatch(Monitor $monitor, string $status): void
+    {
+        $isDown   = $status === 'DOWN';
+        $duration = '-';
+
+        if (!$isDown) {
+            $incident = Incident::where('monitor_id', $monitor->id)
+                ->where('status', 'closed')
+                ->latest('resolved_at')
+                ->first();
+            if ($incident?->duration_seconds) {
+                $s = $incident->duration_seconds;
+                $duration = ($s >= 3600 ? floor($s / 3600) . 'j ' : '')
+                          . ($s >= 60   ? floor(($s % 3600) / 60) . 'm ' : '')
+                          . ($s % 60)   . 'd';
+            }
+        }
+
+        $vars = [
+            '{name}'          => $monitor->name,
+            '{url}'           => $monitor->url,
+            '{status}'        => $status,
+            '{response_time}' => $monitor->last_response_time ? $monitor->last_response_time . 'ms' : '-',
+            '{timestamp}'     => now()->format('d-m-Y H:i:s'),
+            '{duration}'      => $duration,
+        ];
+
+        $key     = $isDown ? 'notif_down_body' : 'notif_recovered_body';
+        $htmlMsg = $this->renderTemplate($key, $vars);
+        // WhatsApp: strip HTML tags
+        $plainMsg = strip_tags($htmlMsg);
+
+        $this->send($monitor, 'monitor.' . strtolower($status), $htmlMsg, $plainMsg);
+    }
+
+    private function send(Monitor $monitor, string $event, string $htmlMsg, string $plainMsg): void
     {
         $channelIds = $monitor->notification_channels ?? [];
         if (empty($channelIds)) {
@@ -70,9 +95,9 @@ class NotificationService
 
         foreach ($channels as $channel) {
             match ($channel->type) {
-                'telegram'  => $this->sendTelegram($channel, $telegramMsg),
-                'whatsapp'  => $this->sendFonnte($channel, $whatsappMsg),
-                'webhook'   => $this->sendWebhook($channel, $monitor, $event, $plain),
+                'telegram'  => $this->sendTelegram($channel, $htmlMsg),
+                'whatsapp'  => $this->sendFonnte($channel, $plainMsg),
+                'webhook'   => $this->sendWebhook($channel, $monitor, $event, $plainMsg),
                 default     => null,
             };
         }
