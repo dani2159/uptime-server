@@ -793,8 +793,9 @@ function sidebar() {
             try {
                 const r = await fetch('{{ route('dashboard.check-all') }}?notify=' + notify, {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
                 });
+                if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
                 const d = await r.json();
                 const notifInfo = notify
                     ? (d.notified > 0 ? `${d.notified} notifikasi terkirim.` : 'Semua monitor tidak punya channel notif.')
@@ -807,8 +808,9 @@ function sidebar() {
                     background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827',
                 });
                 setTimeout(() => location.reload(), 800);
-            } catch {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi error saat check.', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+            } catch(err) {
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Gagal', text: String(err), background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
                 this.checking = false;
             }
         },

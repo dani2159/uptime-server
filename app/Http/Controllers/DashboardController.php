@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use App\Services\UptimeChecker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -87,6 +88,7 @@ class DashboardController extends Controller
         $withNotify = filter_var($request->query('notify', false), FILTER_VALIDATE_BOOLEAN);
         $monitors   = Monitor::where('is_active', true)->get();
         $results    = ['up' => 0, 'down' => 0, 'notified' => 0];
+        Log::info("checkAll started", ['notify' => $withNotify, 'monitors' => $monitors->count()]);
 
         foreach ($monitors as $monitor) {
             $previousStatus = $monitor->last_status;
