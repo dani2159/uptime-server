@@ -42,6 +42,13 @@ class AppSetting extends Model
                 "URL: {url}\n" .
                 "Response: <b>{response_time}</b> (batas: {threshold}ms)\n" .
                 "Waktu: {timestamp}",
+
+            'notif_escalation_body' =>
+                "🚨 <b>ESKALASI: {name}</b> masih DOWN\n" .
+                "URL: {url}\n" .
+                "Sudah down selama: <b>{duration}</b>\n" .
+                "Aturan: {rule}\n" .
+                "Waktu: {timestamp}",
         ];
     }
 }

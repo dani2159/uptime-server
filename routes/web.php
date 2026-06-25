@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EscalationController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\BpjsDashboardController;
 use App\Http\Controllers\DashboardController;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::resource('escalations', EscalationController::class)->except(['show']);
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');

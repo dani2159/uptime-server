@@ -83,6 +83,44 @@
             </div>
         </div>
 
+        {{-- Template Slow --}}
+        <div class="rounded-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div class="flex items-center gap-2.5 px-5 py-3.5 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+                <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">Template Monitor LAMBAT</span>
+                <button type="button" onclick="resetTemplate('slow')"
+                        class="ml-auto text-xs text-gray-400 dark:text-slate-500 hover:text-yellow-500 hover:underline">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>Reset default
+                </button>
+            </div>
+            <div class="p-5">
+                <textarea name="notif_slow_body" id="tpl-slow" rows="5"
+                          class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 resize-y"
+                          placeholder="Template pesan saat response time melebihi batas...">{{ old('notif_slow_body', $slow ?? '') }}</textarea>
+                @error('notif_slow_body')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Variabel: <code class="bg-sky-50 dark:bg-slate-700 px-1 rounded">{response_time}</code> <code class="bg-sky-50 dark:bg-slate-700 px-1 rounded">{threshold}</code></p>
+            </div>
+        </div>
+
+        {{-- Template Eskalasi --}}
+        <div class="rounded-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div class="flex items-center gap-2.5 px-5 py-3.5 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">Template ESKALASI</span>
+                <button type="button" onclick="resetTemplate('escalation')"
+                        class="ml-auto text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 hover:underline">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>Reset default
+                </button>
+            </div>
+            <div class="p-5">
+                <textarea name="notif_escalation_body" id="tpl-escalation" rows="5"
+                          class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 resize-y"
+                          placeholder="Template pesan eskalasi...">{{ old('notif_escalation_body', $escalation_tpl ?? '') }}</textarea>
+                @error('notif_escalation_body')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Variabel: <code class="bg-sky-50 dark:bg-slate-700 px-1 rounded">{duration}</code> <code class="bg-sky-50 dark:bg-slate-700 px-1 rounded">{rule}</code></p>
+            </div>
+        </div>
+
         <div class="flex items-center justify-end gap-3">
             <a href="{{ route('settings.index') }}"
                class="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
@@ -100,8 +138,10 @@
 @push('scripts')
 <script>
 const defaults = {
-    down:      {{ Js::from($defaults['notif_down_body']) }},
-    recovered: {{ Js::from($defaults['notif_recovered_body']) }},
+    down:       {{ Js::from($defaults['notif_down_body']) }},
+    recovered:  {{ Js::from($defaults['notif_recovered_body']) }},
+    slow:       {{ Js::from($defaults['notif_slow_body']) }},
+    escalation: {{ Js::from($defaults['notif_escalation_body']) }},
 };
 
 function resetTemplate(type) {

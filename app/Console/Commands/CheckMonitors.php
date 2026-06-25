@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\EscalateIncidentJob;
 use App\Jobs\RecheckMonitorJob;
+use App\Models\EscalationRule;
 use App\Models\Incident;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
@@ -121,6 +123,18 @@ class CheckMonitors extends Command
             'status'     => 'open',
         ]);
         AuditService::log('monitor.down', "Monitor \"{$monitor->name}\" DOWN — insiden dibuka", $monitor, null);
+
+        // Dispatch eskalasi untuk rules yang berlaku (global + per-monitor)
+        $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
+        if ($incident) {
+            $rules = EscalationRule::where('is_active', true)
+                ->where(fn($q) => $q->whereNull('monitor_id')->orWhere('monitor_id', $monitor->id))
+                ->get();
+            foreach ($rules as $rule) {
+                EscalateIncidentJob::dispatch($incident->id, $rule->id)
+                    ->delay(now()->addMinutes($rule->delay_minutes));
+            }
+        }
     }
 
     private function closeIncident(Monitor $monitor): void

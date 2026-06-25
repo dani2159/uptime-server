@@ -53,21 +53,31 @@ class SettingController extends Controller
 
     public function notifications()
     {
-        $defaults  = AppSetting::defaults();
-        $down      = AppSetting::get('notif_down_body',      $defaults['notif_down_body']);
-        $recovered = AppSetting::get('notif_recovered_body', $defaults['notif_recovered_body']);
-        return view('settings.notifications', compact('down', 'recovered', 'defaults'));
+        $defaults       = AppSetting::defaults();
+        $down           = AppSetting::get('notif_down_body',       $defaults['notif_down_body']);
+        $recovered      = AppSetting::get('notif_recovered_body',  $defaults['notif_recovered_body']);
+        $slow           = AppSetting::get('notif_slow_body',       $defaults['notif_slow_body']);
+        $escalation_tpl = AppSetting::get('notif_escalation_body', $defaults['notif_escalation_body']);
+        return view('settings.notifications', compact('down', 'recovered', 'slow', 'escalation_tpl', 'defaults'));
     }
 
     public function saveNotifications(Request $request)
     {
         $request->validate([
-            'notif_down_body'      => 'required|string|max:2000',
-            'notif_recovered_body' => 'required|string|max:2000',
+            'notif_down_body'       => 'required|string|max:2000',
+            'notif_recovered_body'  => 'required|string|max:2000',
+            'notif_slow_body'       => 'nullable|string|max:2000',
+            'notif_escalation_body' => 'nullable|string|max:2000',
         ]);
 
-        AppSetting::set('notif_down_body',      $request->input('notif_down_body'));
-        AppSetting::set('notif_recovered_body', $request->input('notif_recovered_body'));
+        AppSetting::set('notif_down_body',       $request->input('notif_down_body'));
+        AppSetting::set('notif_recovered_body',  $request->input('notif_recovered_body'));
+        if ($request->filled('notif_slow_body')) {
+            AppSetting::set('notif_slow_body', $request->input('notif_slow_body'));
+        }
+        if ($request->filled('notif_escalation_body')) {
+            AppSetting::set('notif_escalation_body', $request->input('notif_escalation_body'));
+        }
 
         return back()->with('success', 'Template notifikasi berhasil disimpan.');
     }
