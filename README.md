@@ -439,11 +439,13 @@ Jika iForte down secara keseluruhan → IP mereka tidak terjangkau dari Astinet 
 
 Lebih akurat: server di jaringan iForte yang membuktikan dirinya masih bisa keluar ke internet.
 
-1. Di WatchTower: tambah monitor tipe **Push**, salin token yang dihasilkan
-2. Di server iForte: tambah cronjob yang mengirim heartbeat setiap 5 menit:
+1. Di WatchTower: **Dashboard → Tambah Monitor**, pilih tipe **Push**
+2. Isi nama, interval, lalu klik **Generate Token** — token acak otomatis dibuat
+3. URL heartbeat muncul di form, formatnya: `https://monitor.namadomain.com/push/{token}` — salin URL tersebut
+4. Di server iForte: tambah cronjob yang mengirim heartbeat setiap 5 menit:
 
 ```bash
-*/5 * * * * curl -s --max-time 10 https://monitor.namadomain.com/push/<token> > /dev/null 2>&1
+*/5 * * * * curl -s --max-time 10 https://monitor.namadomain.com/push/{token} > /dev/null 2>&1
 ```
 
 1. Atur **Interval** monitor Push ke `6` menit (sedikit lebih lama dari interval cronjob)
