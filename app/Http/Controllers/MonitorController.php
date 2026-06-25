@@ -180,7 +180,8 @@ class MonitorController extends Controller
                     'status'     => 'open',
                 ]);
             }
-            if ($withNotify && ($previousStatus !== 'down' || !$hasOpenIncident)) {
+            // Explicit notify: selalu kirim. Auto: hanya kirim jika baru down
+            if ($withNotify || ($previousStatus !== 'down' && !$hasOpenIncident)) {
                 $this->notifier->notifyDown($monitor);
             }
         } elseif ($currentStatus === 'up' && $previousStatus === 'down') {

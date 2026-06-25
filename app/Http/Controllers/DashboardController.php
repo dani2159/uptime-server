@@ -86,7 +86,7 @@ class DashboardController extends Controller
 
         $withNotify = filter_var($request->query('notify', false), FILTER_VALIDATE_BOOLEAN);
         $monitors   = Monitor::where('is_active', true)->get();
-        $results    = ['up' => 0, 'down' => 0];
+        $results    = ['up' => 0, 'down' => 0, 'notified' => 0];
 
         foreach ($monitors as $monitor) {
             $previousStatus = $monitor->last_status;
@@ -108,8 +108,10 @@ class DashboardController extends Controller
                         'status'     => 'open',
                     ]);
                 }
-                if ($withNotify && ($previousStatus !== 'down' || !$hasOpenIncident)) {
+                // Explicit notify: selalu kirim. Auto (cron): hanya kirim jika baru down
+                if ($withNotify || ($previousStatus !== 'down' && !$hasOpenIncident)) {
                     $notifier->notifyDown($monitor);
+                    $results['notified']++;
                 }
             } elseif ($currentStatus === 'up' && $previousStatus === 'down') {
                 $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();

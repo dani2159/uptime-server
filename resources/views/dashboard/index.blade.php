@@ -796,11 +796,14 @@ function sidebar() {
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                 });
                 const d = await r.json();
+                const notifInfo = notify
+                    ? (d.notified > 0 ? `${d.notified} notifikasi terkirim.` : 'Semua monitor tidak punya channel notif.')
+                    : 'Tanpa notifikasi.';
                 Swal.fire({
                     icon: d.down > 0 ? 'warning' : 'success',
                     title: `Selesai! ${d.up} UP, ${d.down} DOWN`,
-                    text: notify ? (d.down > 0 ? 'Notifikasi terkirim ke channel aktif.' : '') : 'Tanpa notifikasi.',
-                    toast: true, position: 'top-end', timer: 3500, showConfirmButton: false, timerProgressBar: true,
+                    text: notifInfo,
+                    toast: true, position: 'top-end', timer: 4000, showConfirmButton: false, timerProgressBar: true,
                     background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827',
                 });
                 setTimeout(() => location.reload(), 800);
