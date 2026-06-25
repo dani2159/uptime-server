@@ -293,7 +293,9 @@ php artisan storage:link
 ```bash
 git pull origin main
 
-docker compose up -d --build
+docker compose build
+
+docker compose up -d
 
 docker compose exec app php artisan migrate --force
 docker compose exec app php artisan config:cache
@@ -301,6 +303,7 @@ docker compose exec app php artisan route:cache
 docker compose exec app php artisan view:cache
 ```
 
+> Build image dulu (`build`) sebelum restart container (`up -d`) agar downtime minimal — container lama masih jalan selama proses build berlangsung.
 > Semua migration bersifat non-destructive. Data yang sudah ada aman setelah `migrate --force`.
 
 ---
