@@ -645,6 +645,32 @@
             </div>
             @endif
 
+            {{-- Tags --}}
+            @if($allTags->isNotEmpty())
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-2">Tags</label>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($allTags as $tag)
+                    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                        <input type="checkbox" value="{{ $tag->id }}" x-model="form.tags"
+                               class="w-3.5 h-3.5 rounded border-sky-300 dark:border-slate-500 text-sky-500 focus:ring-sky-300 dark:bg-slate-700">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                              style="background:{{ $tag->color }}">
+                            {{ $tag->name }}
+                        </span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Batas Lambat --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Batas Lambat (ms)</label>
+                <input type="number" x-model="form.response_time_warning" min="100" max="60000" placeholder="Kosong = nonaktif"
+                       class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 placeholder-sky-300 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
+            </div>
+
             {{-- General error --}}
             <p x-show="errors.general" x-text="errors.general" class="text-red-500 dark:text-red-400 text-sm"></p>
         </div>
@@ -671,11 +697,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 @if($selected)
 @php
-    $monitorEditJson = json_encode($selected->only([
-        'id','name','url','type','check_interval','timeout','retry_count',
-        'keyword','tcp_host','tcp_port','push_token',
-        'dns_resolve_type','dns_expected_value','notification_channels'
-    ]));
+    $monitorEditJson = json_encode(array_merge(
+        $selected->only([
+            'id','name','url','type','check_interval','timeout','retry_count',
+            'keyword','tcp_host','tcp_port','push_token',
+            'dns_resolve_type','dns_expected_value','notification_channels'
+        ]),
+        ['tags' => $selected->tags->pluck('id')->map(fn($id) => (string)$id)->toArray()]
+    ));
 @endphp
 <script>
 // Chart.js
@@ -897,7 +926,7 @@ function monitorModal() {
             check_interval: 5, timeout: 30, retry_count: 3,
             keyword: '', tcp_host: '', tcp_port: '',
             push_token: '', dns_resolve_type: 'A', dns_expected_value: '',
-            notification_channels: [],
+            notification_channels: [], tags: [], response_time_warning: '',
         },
 
         onTypeChange() {
@@ -928,6 +957,8 @@ function monitorModal() {
                     dns_resolve_type: m.dns_resolve_type ?? 'A',
                     dns_expected_value: m.dns_expected_value ?? '',
                     notification_channels: (m.notification_channels ?? []).map(String),
+                    tags: (m.tags ?? []).map(String),
+                    response_time_warning: m.response_time_warning ?? '',
                 };
             } else {
                 this.mode = 'create';
@@ -936,7 +967,7 @@ function monitorModal() {
                     check_interval: 5, timeout: 30, retry_count: 3,
                     keyword: '', tcp_host: '', tcp_port: '',
                     push_token: '', dns_resolve_type: 'A', dns_expected_value: '',
-                    notification_channels: [],
+                    notification_channels: [], tags: [], response_time_warning: '',
                 };
             }
             this.open = true;
@@ -965,6 +996,8 @@ function monitorModal() {
             if (this.form.type === 'push') body.set('push_token', this.form.push_token);
             if (this.form.type === 'dns') { body.set('dns_resolve_type', this.form.dns_resolve_type); body.set('dns_expected_value', this.form.dns_expected_value); }
             this.form.notification_channels.forEach(id => body.append('notification_channels[]', id));
+            this.form.tags.forEach(id => body.append('tags[]', id));
+            if (this.form.response_time_warning) body.set('response_time_warning', this.form.response_time_warning);
             if (this.mode === 'edit') body.set('_method', 'PUT');
             try {
                 const res = await fetch(url, {
