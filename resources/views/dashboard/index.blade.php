@@ -148,7 +148,7 @@
              checking: false,
              async cekNow() {
                  const isDark = document.documentElement.classList.contains('dark');
-                 const { value: choice } = await Swal.fire({
+                 const _swal = await Swal.fire({
                      title: 'Check Monitor',
                      text: 'Kirim notifikasi WA/Telegram jika DOWN?',
                      icon: 'question',
@@ -162,8 +162,8 @@
                      background: isDark ? '#1e293b' : '#fff',
                      color: isDark ? '#e2e8f0' : '#111827',
                  });
-                 if (choice === undefined) return;
-                 const notify = choice === true ? 1 : 0;
+                 if (_swal.isDismissed) return;
+                 const notify = _swal.isConfirmed ? 1 : 0;
                  this.checking = true;
                  try {
                      const r = await fetch('{{ route('monitors.check-now', $selected) }}?notify=' + notify, {
@@ -776,8 +776,8 @@ function sidebar() {
                 background: isDark ? '#1e293b' : '#fff',
                 color: isDark ? '#e2e8f0' : '#111827',
             });
-            if (choice === undefined) return; // Batal
-            const notify = choice === true ? 1 : 0;
+            if (_swal.isDismissed) return;
+            const notify = _swal.isConfirmed ? 1 : 0;
             this.checking = true;
             try {
                 const r = await fetch('{{ route('dashboard.check-all') }}?notify=' + notify, {
