@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Incident;
 use App\Models\Monitor;
 use App\Models\NotificationChannel;
 use App\Services\DnsResolver;
+use App\Services\NotificationService;
 use App\Services\SslChecker;
 use App\Services\UptimeChecker;
 use Illuminate\Http\Request;
@@ -14,7 +16,8 @@ class MonitorController extends Controller
     public function __construct(
         private UptimeChecker $checker,
         private DnsResolver $resolver,
-        private SslChecker $sslChecker
+        private SslChecker $sslChecker,
+        private NotificationService $notifier
     ) {}
 
     public function index()
@@ -152,6 +155,8 @@ class MonitorController extends Controller
 
     public function checkNow(Request $request, Monitor $monitor)
     {
+        $previousStatus = $monitor->last_status;
+
         $result = $this->checker->check($monitor);
         $this->checker->saveResult($monitor, $result);
         $this->resolver->resolve($monitor);
@@ -160,12 +165,42 @@ class MonitorController extends Controller
             $this->sslChecker->saveResult($monitor, $ssl);
         }
 
-        $msg = "Cek selesai: " . strtoupper($result['status'])
+        $currentStatus = $result['status'];
+
+        // Kirim notifikasi jika status berubah jadi down, atau sudah down & belum ada insiden terbuka
+        if ($currentStatus === 'down') {
+            $hasOpenIncident = Incident::open()->where('monitor_id', $monitor->id)->exists();
+            if ($previousStatus !== 'down' || !$hasOpenIncident) {
+                $this->notifier->notifyDown($monitor);
+                if (!$hasOpenIncident) {
+                    $monitor->refresh();
+                    Incident::create([
+                        'monitor_id' => $monitor->id,
+                        'category'   => 'monitor_downtime',
+                        'started_at' => $monitor->last_down_at ?? now(),
+                        'status'     => 'open',
+                    ]);
+                }
+            }
+        } elseif ($currentStatus === 'up' && $previousStatus === 'down') {
+            $this->notifier->notifyRecovered($monitor);
+            $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
+            if ($incident) {
+                $resolvedAt = now();
+                $incident->update([
+                    'resolved_at'      => $resolvedAt,
+                    'status'           => 'closed',
+                    'duration_seconds' => $incident->started_at->diffInSeconds($resolvedAt),
+                ]);
+            }
+        }
+
+        $msg = "Cek selesai: " . strtoupper($currentStatus)
             . ($result['response_time'] ? " ({$result['response_time']}ms)" : '');
 
         if ($request->expectsJson()) {
             return response()->json([
-                'status'        => $result['status'],
+                'status'        => $currentStatus,
                 'response_time' => $result['response_time'] ?? null,
                 'message'       => $msg,
             ]);
