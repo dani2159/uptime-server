@@ -88,8 +88,8 @@ class CheckMonitors extends Command
             $this->notifier->notifyDown($monitor);
             $this->openIncident($monitor);
         } elseif ($newRetries < $monitor->retry_count) {
-            // Rapid recheck: cek ulang dalam 30 detik
-            RecheckMonitorJob::dispatch($monitor->id)->delay(now()->addSeconds(30));
+            // Rapid recheck: cek ulang dalam 20 detik
+            RecheckMonitorJob::dispatch($monitor->id)->delay(now()->addSeconds(20));
         }
     }
 
