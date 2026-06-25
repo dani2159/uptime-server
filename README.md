@@ -405,6 +405,165 @@ Lihat hop ke-2 atau ke-3.
 
 ---
 
+## Studi Kasus
+
+### Kasus 1 — Server di Astinet, ingin tahu apakah iForte down
+
+Server production terpasang di jaringan Astinet. Sistem ingin mendeteksi jika ISP iForte (yang dipakai user atau kantor cabang) sedang bermasalah.
+
+#### Opsi A — Ping ke infrastruktur iForte dari Astinet
+
+Cari IP publik milik iForte sendiri (bukan IP customer mereka), misalnya DNS resolver atau NTP server iForte:
+
+```cmd
+nslookup iforte.net
+tracert iforte.net
+```
+
+Lihat hop yang masuk ke AS iForte (AS24206) — itu target yang stabil. Tambah monitor:
+
+| Field | Nilai |
+| --- | --- |
+| Nama | iForte Gateway |
+| Tipe | Ping |
+| Host | IP infrastruktur iForte |
+| Interval | 5 menit |
+
+Jika iForte down secara keseluruhan → IP mereka tidak terjangkau dari Astinet → monitor DOWN → notifikasi terkirim.
+
+**Keterbatasan:** hanya membuktikan keterjangkauan dari sisi Astinet ke iForte. Bisa false-positive jika hanya routing antar-ISP yang bermasalah sementara iForte sendiri baik-baik saja.
+
+---
+
+#### Opsi B — Push heartbeat dari server/VM yang ada di iForte
+
+Lebih akurat: server di jaringan iForte yang membuktikan dirinya masih bisa keluar ke internet.
+
+1. Di WatchTower: tambah monitor tipe **Push**, salin token yang dihasilkan
+2. Di server iForte: tambah cronjob yang mengirim heartbeat setiap 5 menit:
+
+```bash
+*/5 * * * * curl -s --max-time 10 https://monitor.namadomain.com/push/<token> > /dev/null 2>&1
+```
+
+1. Atur **Interval** monitor Push ke `6` menit (sedikit lebih lama dari interval cronjob)
+
+Kalau iForte down → server iForte tidak bisa kirim heartbeat → WatchTower anggap DOWN setelah melewati interval tanpa heartbeat.
+
+**Keunggulan Opsi B:** membuktikan end-to-end — server di iForte benar-benar bisa menjangkau internet (bukan hanya bisa di-ping dari luar).
+
+**Rekomendasi:** pakai keduanya — Opsi A untuk deteksi cepat dari sisi luar, Opsi B untuk konfirmasi bahwa koneksi outbound iForte juga bermasalah.
+
+---
+
+### Kasus 2 — Monitoring koneksi internet kantor cabang
+
+Kantor cabang tersebar di beberapa kota, masing-masing dengan ISP berbeda. Ingin tahu cabang mana yang koneksinya bermasalah tanpa harus menelepon satu per satu.
+
+**Setup per cabang:**
+
+Di setiap PC/server cabang, buat script yang mengirim heartbeat:
+
+```bash
+# Linux/Mac
+*/3 * * * * curl -s https://monitor.namadomain.com/push/<token-cabang> > /dev/null
+
+# Windows (Task Scheduler, jalankan tiap 3 menit)
+powershell -Command "Invoke-WebRequest -Uri 'https://monitor.namadomain.com/push/<token>' -UseBasicParsing | Out-Null"
+```
+
+Buat satu monitor Push per cabang dengan nama deskriptif:
+
+| Monitor | Cabang |
+| --- | --- |
+| Cabang Surabaya — iForte | Surabaya |
+| Cabang Bandung — Biznet | Bandung |
+| Cabang Medan — Telkom | Medan |
+
+Jika salah satu cabang DOWN → langsung tahu cabang mana tanpa perlu konfirmasi manual.
+
+---
+
+### Kasus 3 — Monitoring cronjob / backup otomatis
+
+Backup database berjalan tiap malam jam 02.00. Ingin notifikasi jika backup tidak berjalan.
+
+1. Tambah monitor tipe **Push** → salin token
+2. Tambah perintah heartbeat di akhir script backup:
+
+```bash
+#!/bin/bash
+# backup.sh
+mysqldump -u root -p database_name > /backup/db_$(date +%Y%m%d).sql.gz
+
+# Kirim heartbeat HANYA jika backup sukses
+if [ $? -eq 0 ]; then
+    curl -s https://monitor.namadomain.com/push/<token> > /dev/null
+fi
+```
+
+1. Set interval monitor Push ke `1500` menit (25 jam) — jika backup tidak jalan sehari, monitor DOWN
+
+---
+
+### Kasus 4 — Monitoring ketersediaan BPJS sebelum jam sibuk
+
+BPJS sering tidak bisa diakses pagi hari (07.00–08.00) saat lonjakan traffic. Ingin data historis untuk membuktikan ke manajemen bahwa gangguan bukan dari sisi SIMRS.
+
+**Setup:**
+
+- Gunakan **API Health Dashboard** dengan interval 15–30 menit (setting di **Settings**)
+- Aktifkan notifikasi webhook ke channel Telegram/WA tim IT
+- History log tersimpan otomatis — buka halaman detail monitor untuk lihat grafik response time
+
+Dengan heartbeat bar 90 titik terakhir, bisa langsung tunjukkan ke manajemen pattern gangguan: merah di jam 07.00–08.00, hijau setelahnya.
+
+---
+
+### Kasus 5 — Monitoring SSL certificate hampir expired
+
+Server production punya beberapa domain dengan SSL dari provider berbeda. Sering lupa renew.
+
+- Tambah monitor HTTP untuk setiap domain
+- WatchTower cek SSL otomatis via command `monitor:ssl-check` (berjalan 2x sehari jam 08.00 dan 20.00)
+- Notifikasi dikirim jika sisa masa berlaku SSL **≤ 30 hari**
+
+Tidak perlu setup tambahan — cukup monitor HTTP aktif, SSL check berjalan otomatis.
+
+---
+
+### Kasus 6 — Monitoring port database yang seharusnya tidak publik
+
+Pastikan port MySQL (3306) atau PostgreSQL (5432) tidak bisa diakses dari internet (misconfiguration firewall).
+
+Tambah monitor tipe **TCP** dari server lain (atau VPS publik) ke IP server database:
+
+| Field | Nilai |
+| --- | --- |
+| Nama | DB Port Check (harus DOWN) |
+| Tipe | TCP |
+| Host | IP publik server database |
+| Port | 3306 |
+
+Jika monitor ini **UP** → firewall bocor, port database terbuka ke publik → segera tutup.
+
+> Ini penggunaan terbalik: monitor yang **seharusnya selalu DOWN**. Jika tiba-tiba UP, itu alert keamanan.
+
+---
+
+### Kasus 7 — Status Page untuk klien / manajemen
+
+Tim IT ingin memberikan halaman status real-time ke manajemen atau klien tanpa perlu akses ke dashboard internal.
+
+1. **Status Pages → Buat Status Page**
+2. Tambah section: "Layanan Web", "API BPJS", "Infrastruktur"
+3. Masukkan monitor ke masing-masing section
+4. Bagikan URL `/status/{slug}` ke manajemen atau client
+
+Halaman publik tidak memerlukan login, auto-refresh setiap 60 detik, dan menampilkan heartbeat bar 90 pengecekan terakhir per layanan.
+
+---
+
 ## Notifikasi
 
 ### WhatsApp (Fonnte)
