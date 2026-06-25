@@ -32,18 +32,20 @@
 <header class="bg-white dark:bg-slate-800 border-b border-sky-100 dark:border-slate-700 sticky top-0 z-30 shadow-sm" x-data="{ mobileOpen: false }">
 
     {{-- Top bar --}}
-    <div class="flex items-center gap-2 px-4 h-14">
+    <div class="flex items-center px-4 h-14">
 
-        {{-- Brand --}}
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 flex-shrink-0">
-            <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-8 h-8 object-contain">
-            <div class="hidden sm:block">
-                <p class="font-bold text-gray-800 dark:text-slate-100 leading-none text-sm">WatchTower</p>
-                <p class="text-[10px] text-sky-500 leading-none mt-0.5">Uptime Monitor</p>
-            </div>
-        </a>
+        {{-- Brand (left, flex-1) --}}
+        <div class="flex-1 flex items-center">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
+                <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-8 h-8 object-contain">
+                <div class="hidden sm:block">
+                    <p class="font-bold text-gray-800 dark:text-slate-100 leading-none text-sm">WatchTower</p>
+                    <p class="text-[10px] text-sky-500 leading-none mt-0.5">Uptime Monitor</p>
+                </div>
+            </a>
+        </div>
 
-        {{-- Desktop nav --}}
+        {{-- Desktop nav (center) --}}
         @php
             $aNav = [
                 ['route' => 'dashboard',           'pattern' => 'dashboard',       'icon' => 'fa-house',                'label' => 'Dashboard'],
@@ -57,10 +59,10 @@
                 ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',              'label' => 'Settings'],
             ];
         @endphp
-        <nav class="hidden lg:flex items-center gap-0.5 ml-3 flex-1 overflow-x-auto">
+        <nav class="hidden lg:flex items-center gap-0.5">
             @foreach($aNav as $n)
             <a href="{{ route($n['route']) }}"
-               class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap flex-shrink-0
+               class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
                    {{ request()->routeIs($n['pattern'])
                        ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
                        : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
@@ -69,8 +71,8 @@
             @endforeach
         </nav>
 
-        {{-- Right actions --}}
-        <div class="ml-auto flex items-center gap-2 flex-shrink-0">
+        {{-- Right actions (flex-1, justify-end) --}}
+        <div class="flex-1 flex items-center justify-end gap-2">
 
             {{-- IP badge (desktop only) --}}
             @if(!empty($serverIpInfo['ip']))
