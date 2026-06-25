@@ -75,8 +75,20 @@
         @endforeach
     </nav>
 
-    {{-- Right: dark mode toggle + clock --}}
+    {{-- Right: IP badge + dark mode toggle + clock --}}
     <div class="ml-auto flex items-center gap-3">
+
+        @if(!empty($serverIpInfo['ip']))
+        <div class="hidden lg:flex items-center gap-1.5 bg-sky-50 dark:bg-slate-700/60 border border-sky-100 dark:border-slate-600 rounded-lg px-2.5 py-1"
+             title="{{ $serverIpInfo['isp'] ?? '' }}{{ isset($serverIpInfo['city']) ? ' · '.$serverIpInfo['city'].', '.$serverIpInfo['country'] : '' }}">
+            <i class="fa-solid fa-tower-broadcast text-sky-400 text-[10px]"></i>
+            <span class="font-mono text-[11px] text-sky-700 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
+            @if(!empty($serverIpInfo['isp']))
+            <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden xl:inline">· {{ Str::limit($serverIpInfo['isp'], 22) }}</span>
+            @endif
+        </div>
+        @endif
+
         <button onclick="toggleDark()" id="theme-btn"
                 class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
                 title="Toggle tema">
