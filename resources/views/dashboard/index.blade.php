@@ -778,6 +778,15 @@ function monitorModal() {
             notification_channels: [],
         },
 
+        init() {
+            const placeholders = ['push://heartbeat', 'tcp://placeholder'];
+            this.$watch('form.type', (newType) => {
+                if (['http','keyword','ping','dns'].includes(newType) && placeholders.includes(this.form.url)) {
+                    this.form.url = '';
+                }
+            });
+        },
+
         openModal(detail) {
             this.errors = {};
             this.submitting = false;

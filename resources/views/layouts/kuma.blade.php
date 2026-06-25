@@ -34,90 +34,135 @@
         .dark .modal-scroll::-webkit-scrollbar-thumb { background: #334155; }
     </style>
 </head>
-<body class="bg-sky-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 overflow-hidden">
+<body class="bg-sky-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 overflow-hidden"
+      x-data="{ mobileNav: false, mobileSidebar: false }">
 
 {{-- Topbar --}}
-<header class="h-14 bg-white dark:bg-slate-800 border-b border-sky-100 dark:border-slate-700 flex items-center px-5 flex-shrink-0 shadow-sm relative">
+<header class="bg-white dark:bg-slate-800 border-b border-sky-100 dark:border-slate-700 flex-shrink-0 shadow-sm">
 
-    {{-- Brand (left) --}}
-    <div class="flex items-center gap-2.5 w-48 flex-shrink-0">
-        <div class="w-9 h-9 flex-shrink-0">
-            <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-full h-full object-contain">
-        </div>
-        <div class="hidden sm:block">
-            <p class="font-bold text-gray-800 dark:text-slate-100 leading-none text-sm">WatchTower</p>
-            <p class="text-[10px] text-sky-500 leading-none mt-0.5">Uptime Monitor</p>
-        </div>
-    </div>
+    <div class="flex items-center gap-2 px-4 h-14">
 
-    {{-- Nav (center, absolute) --}}
-    <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5">
+        {{-- Brand --}}
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 flex-shrink-0">
+            <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-8 h-8 object-contain">
+            <div class="hidden sm:block">
+                <p class="font-bold text-gray-800 dark:text-slate-100 leading-none text-sm">WatchTower</p>
+                <p class="text-[10px] text-sky-500 leading-none mt-0.5">Uptime Monitor</p>
+            </div>
+        </a>
+
+        {{-- Desktop nav --}}
         @php
             $kNav = [
-                ['route' => 'dashboard',           'pattern' => 'dashboard',        'icon' => 'fa-house',        'label' => 'Dashboard'],
-                ['route' => 'monitors.index',      'pattern' => 'monitors.*',       'icon' => 'fa-chart-bar',    'label' => 'Monitors'],
-                ['route' => 'api-health.dashboard','pattern' => 'api-health.*',     'icon' => 'fa-bolt',         'label' => 'API Health'],
-                ['route' => 'channels.index',      'pattern' => 'channels.*',       'icon' => 'fa-bell',         'label' => 'Notifikasi'],
-                ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',    'icon' => 'fa-clock',        'label' => 'Maintenance'],
+                ['route' => 'dashboard',           'pattern' => 'dashboard',       'icon' => 'fa-house',                'label' => 'Dashboard'],
+                ['route' => 'monitors.index',      'pattern' => 'monitors.*',      'icon' => 'fa-chart-bar',            'label' => 'Monitors'],
+                ['route' => 'api-health.dashboard','pattern' => 'api-health.*',    'icon' => 'fa-bolt',                 'label' => 'API Health'],
+                ['route' => 'channels.index',      'pattern' => 'channels.*',      'icon' => 'fa-bell',                 'label' => 'Notifikasi'],
+                ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',   'icon' => 'fa-clock',                'label' => 'Maintenance'],
                 ['route' => 'incidents.index',     'pattern' => 'incidents.*',     'icon' => 'fa-triangle-exclamation', 'label' => 'Insiden'],
-                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',   'label' => 'SLA Report'],
-                ['route' => 'status-pages.index',  'pattern' => 'status-pages.*',  'icon' => 'fa-circle-check', 'label' => 'Status Pages'],
+                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
+                ['route' => 'status-pages.index',  'pattern' => 'status-pages.*', 'icon' => 'fa-circle-check',         'label' => 'Status Pages'],
+                ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',              'label' => 'Settings'],
             ];
         @endphp
-        @foreach($kNav as $n)
-        <a href="{{ route($n['route']) }}"
-           class="px-3 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
-               {{ request()->routeIs($n['pattern'])
-                   ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
-                   : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
-            <i class="fa-solid {{ $n['icon'] }} mr-1"></i>{{ $n['label'] }}
-        </a>
-        @endforeach
-    </nav>
+        <nav class="hidden lg:flex items-center gap-0.5 ml-2 flex-1 overflow-x-auto">
+            @foreach($kNav as $n)
+            <a href="{{ route($n['route']) }}"
+               class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap flex-shrink-0
+                   {{ request()->routeIs($n['pattern'])
+                       ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                       : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                <i class="fa-solid {{ $n['icon'] }} mr-1"></i>{{ $n['label'] }}
+            </a>
+            @endforeach
+        </nav>
 
-    {{-- Right: IP badge + dark mode toggle + clock --}}
-    <div class="ml-auto flex items-center gap-3">
+        {{-- Right --}}
+        <div class="ml-auto flex items-center gap-2 flex-shrink-0">
 
-        @if(!empty($serverIpInfo['ip']))
-        <div class="hidden lg:flex items-center gap-1.5 bg-sky-50 dark:bg-slate-700/60 border border-sky-100 dark:border-slate-600 rounded-lg px-2.5 py-1"
-             title="{{ $serverIpInfo['isp'] ?? '' }}{{ isset($serverIpInfo['city']) ? ' · '.$serverIpInfo['city'].', '.$serverIpInfo['country'] : '' }}">
-            <i class="fa-solid fa-tower-broadcast text-sky-400 text-[10px]"></i>
-            <span class="font-mono text-[11px] text-sky-700 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
-            @if(!empty($serverIpInfo['isp']))
-            <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden xl:inline">· {{ Str::limit($serverIpInfo['isp'], 22) }}</span>
+            @if(!empty($serverIpInfo['ip']))
+            <div class="hidden xl:flex items-center gap-1.5 bg-sky-50 dark:bg-slate-700/60 border border-sky-100 dark:border-slate-600 rounded-lg px-2.5 py-1"
+                 title="{{ $serverIpInfo['isp'] ?? '' }}">
+                <i class="fa-solid fa-tower-broadcast text-sky-400 text-[10px]"></i>
+                <span class="font-mono text-[11px] text-sky-700 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
+                <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden 2xl:inline">· {{ Str::limit($serverIpInfo['isp'] ?? '', 20) }}</span>
+            </div>
             @endif
-        </div>
-        @endif
 
-        <button onclick="toggleDark()" id="theme-btn"
-                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
-                title="Toggle tema">
-            <i id="theme-icon" class="fa-solid fa-moon text-slate-400 text-sm"></i>
-        </button>
-        <div class="text-right">
-            <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium">{{ now()->format('H:i:s') }}</p>
-            <p id="live-date" class="text-[10px] text-gray-400 dark:text-slate-500">{{ now()->isoFormat('ddd, D MMM Y') }}</p>
-        </div>
-        @auth
-        <div class="flex items-center gap-2 pl-3 ml-1 border-l border-sky-100 dark:border-slate-700">
-            <span class="text-xs font-medium text-gray-500 dark:text-slate-400 hidden md:block">{{ auth()->user()->name }}</span>
+            <button onclick="toggleDark()" id="theme-btn"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors">
+                <i id="theme-icon" class="fa-solid fa-moon text-slate-400 text-sm"></i>
+            </button>
+            <div class="hidden md:block text-right">
+                <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium"></p>
+                <p id="live-date"  class="text-[10px] text-gray-400 dark:text-slate-500"></p>
+            </div>
+            @auth
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" title="Keluar"
-                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-400 hover:text-red-500 transition-colors">
+                        class="w-8 h-8 hidden sm:flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-400 hover:text-red-500 transition-colors">
                     <i class="fa-solid fa-right-from-bracket text-sm"></i>
                 </button>
             </form>
+            @endauth
+
+            {{-- Mobile: sidebar toggle --}}
+            <button @click="mobileSidebar = !mobileSidebar"
+                    class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400">
+                <i class="fa-solid fa-list text-sm"></i>
+            </button>
+
+            {{-- Mobile: nav hamburger --}}
+            <button @click="mobileNav = !mobileNav"
+                    class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400">
+                <i class="fa-solid" :class="mobileNav ? 'fa-xmark' : 'fa-bars'"></i>
+            </button>
         </div>
-        @endauth
     </div>
+
+    {{-- Mobile nav drawer --}}
+    <div x-show="mobileNav" x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="lg:hidden border-t border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 grid grid-cols-2 gap-1">
+        @foreach($kNav as $n)
+        <a href="{{ route($n['route']) }}" @click="mobileNav = false"
+           class="flex items-center gap-2 px-3 py-2 text-sm rounded-xl font-medium transition-colors
+               {{ request()->routeIs($n['pattern'])
+                   ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                   : 'text-gray-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+            <i class="fa-solid {{ $n['icon'] }} w-4 text-center text-sky-400"></i>{{ $n['label'] }}
+        </a>
+        @endforeach
+    </div>
+
 </header>
 
-<div class="flex panel-h">
-    <aside class="panel-h w-[280px] bg-white dark:bg-slate-800 border-r border-sky-100 dark:border-slate-700 flex flex-col flex-shrink-0">
+{{-- Body: sidebar + main --}}
+<div class="flex" style="height:calc(100vh - 56px)">
+
+    {{-- Sidebar: desktop always visible, mobile overlay --}}
+    <aside class="hidden lg:flex lg:w-[280px] flex-col flex-shrink-0 bg-white dark:bg-slate-800 border-r border-sky-100 dark:border-slate-700 overflow-y-auto sidebar-list">
         @yield('sidebar')
     </aside>
-    <main class="panel-h main-panel flex-1 overflow-y-auto bg-sky-50 dark:bg-slate-900">
+
+    {{-- Mobile sidebar overlay --}}
+    <div x-show="mobileSidebar" x-cloak class="lg:hidden fixed inset-0 z-40 flex" @click.self="mobileSidebar = false">
+        <div class="w-72 max-w-[85vw] bg-white dark:bg-slate-800 border-r border-sky-100 dark:border-slate-700 overflow-y-auto sidebar-list flex flex-col shadow-xl"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="-translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="-translate-x-full">
+            @yield('sidebar')
+        </div>
+        <div class="flex-1 bg-black/30"></div>
+    </div>
+
+    <main class="flex-1 overflow-y-auto main-panel bg-sky-50 dark:bg-slate-900">
         @yield('main')
     </main>
 </div>
