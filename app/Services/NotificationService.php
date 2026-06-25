@@ -78,14 +78,27 @@ class NotificationService
         }
     }
 
+    private function parseTelegramTarget(string $target): array
+    {
+        // Format: "chat_id" atau "chat_id:thread_id" untuk supergroup topic
+        if (str_contains($target, ':')) {
+            [$chatId, $threadId] = explode(':', $target, 2);
+            return ['chat_id' => $chatId, 'message_thread_id' => (int) $threadId];
+        }
+        return ['chat_id' => $target];
+    }
+
     private function sendTelegram(NotificationChannel $channel, string $message): void
     {
         try {
-            Http::post("https://api.telegram.org/bot{$channel->token}/sendMessage", [
-                'chat_id'    => $channel->target,
-                'text'       => $message,
-                'parse_mode' => 'HTML',
-            ]);
+            $payload = $this->parseTelegramTarget($channel->target);
+            $payload['text']       = $message;
+            $payload['parse_mode'] = 'HTML';
+
+            $res = Http::timeout(10)->post("https://api.telegram.org/bot{$channel->token}/sendMessage", $payload);
+            if (!$res->ok()) {
+                Log::warning("Telegram rejected: " . $res->body());
+            }
         } catch (\Throwable $e) {
             Log::error("Telegram notification failed: {$e->getMessage()}");
         }
@@ -117,11 +130,10 @@ class NotificationService
 
         try {
             if ($channel->type === 'telegram') {
-                $res = Http::post("https://api.telegram.org/bot{$channel->token}/sendMessage", [
-                    'chat_id'    => $channel->target,
-                    'text'       => $message,
-                    'parse_mode' => 'MarkdownV2',
-                ]);
+                $payload = $this->parseTelegramTarget($channel->target);
+                $payload['text']       = $message;
+                $payload['parse_mode'] = 'HTML';
+                $res = Http::timeout(10)->post("https://api.telegram.org/bot{$channel->token}/sendMessage", $payload);
                 return ['ok' => $res->ok(), 'body' => $res->json()];
             }
 

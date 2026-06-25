@@ -58,7 +58,10 @@
                    : 'https://hooks.example.com/watchtower'"
                :type="type === 'webhook' ? 'url' : 'text'"
                required>
-        <p class="text-xs text-sky-500 mt-1" x-show="type === 'telegram'">Telegram: chat_id grup diawali <code>-</code></p>
+        <p class="text-xs text-sky-500 mt-1" x-show="type === 'telegram'">
+            Grup biasa: <code>-1001234567890</code><br>
+            Supergroup topic: <code>-1001234567890:456</code> (chat_id:thread_id)
+        </p>
         <p class="text-xs text-sky-500 mt-1" x-show="type === 'whatsapp'">Format tanpa <code>+</code>, gunakan kode negara (contoh: 6281234567890)</p>
         @error('target')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
