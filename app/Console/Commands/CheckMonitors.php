@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\RecheckMonitorJob;
 use App\Models\Incident;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
@@ -83,9 +84,12 @@ class CheckMonitors extends Command
         $monitor->update(['current_retries' => $newRetries]);
 
         // Notif hanya saat pertama kali retries mencapai threshold (bukan setiap check)
-        if ($newRetries === $monitor->retry_count && !$inMaintenance) {
+        if ($newRetries >= $monitor->retry_count && !$inMaintenance) {
             $this->notifier->notifyDown($monitor);
             $this->openIncident($monitor);
+        } elseif ($newRetries < $monitor->retry_count) {
+            // Rapid recheck: jangan tunggu jadwal berikutnya, cek ulang dalam 60 detik
+            RecheckMonitorJob::dispatch($monitor->id)->delay(now()->addSeconds(60));
         }
     }
 
