@@ -762,7 +762,7 @@ function sidebar() {
         async checkAll() {
             if (this.checking) return;
             const isDark = document.documentElement.classList.contains('dark');
-            const { value: choice } = await Swal.fire({
+            const _swal = await Swal.fire({
                 title: 'Check All Monitor',
                 text: 'Kirim notifikasi WA/Telegram jika ada yang DOWN?',
                 icon: 'question',
@@ -779,6 +779,17 @@ function sidebar() {
             if (_swal.isDismissed) return;
             const notify = _swal.isConfirmed ? 1 : 0;
             this.checking = true;
+            Swal.fire({
+                title: 'Sedang mengecek semua monitor...',
+                text: 'Mohon tunggu, jangan tutup halaman ini.',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading(),
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#e2e8f0' : '#111827',
+            });
             try {
                 const r = await fetch('{{ route('dashboard.check-all') }}?notify=' + notify, {
                     method: 'POST',
@@ -789,11 +800,12 @@ function sidebar() {
                     icon: d.down > 0 ? 'warning' : 'success',
                     title: `Selesai! ${d.up} UP, ${d.down} DOWN`,
                     text: notify ? (d.down > 0 ? 'Notifikasi terkirim ke channel aktif.' : '') : 'Tanpa notifikasi.',
-                    toast: true, position: 'top-end', timer: 3000, showConfirmButton: false, timerProgressBar: true,
+                    toast: true, position: 'top-end', timer: 3500, showConfirmButton: false, timerProgressBar: true,
                     background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827',
                 });
                 setTimeout(() => location.reload(), 800);
             } catch {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi error saat check.', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
                 this.checking = false;
             }
         },
