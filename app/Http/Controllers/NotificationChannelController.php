@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NotificationChannel;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class NotificationChannelController extends Controller
@@ -64,5 +65,11 @@ class NotificationChannelController extends Controller
     {
         $channel->delete();
         return redirect()->route('channels.index')->with('success', 'Channel berhasil dihapus.');
+    }
+
+    public function test(NotificationChannel $channel, NotificationService $notifier)
+    {
+        $result = $notifier->sendTest($channel);
+        return response()->json($result);
     }
 }

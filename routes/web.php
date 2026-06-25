@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('channels', NotificationChannelController::class)->except(['show']);
+    Route::post('channels/{channel}/test', [NotificationChannelController::class, 'test'])->name('channels.test');
 
     Route::resource('maintenance', MaintenanceWindowController::class)->except(['show']);
     Route::resource('status-pages', StatusPageController::class)->except(['show']);

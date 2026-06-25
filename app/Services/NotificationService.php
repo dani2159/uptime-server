@@ -94,14 +94,63 @@ class NotificationService
     private function sendFonnte(NotificationChannel $channel, string $message): void
     {
         try {
-            Http::withHeaders(['Authorization' => $channel->token])
+            $res = Http::withHeaders(['Authorization' => $channel->token])
+                ->timeout(15)
+                ->asForm()
                 ->post('https://api.fonnte.com/send', [
-                    'target'  => $channel->target,
-                    'message' => $message,
+                    'target'      => $channel->target,
+                    'message'     => $message,
+                    'countryCode' => '62',
                 ]);
+
+            if (!$res->ok() || $res->json('status') === false) {
+                Log::warning("Fonnte rejected: " . $res->body());
+            }
         } catch (\Throwable $e) {
             Log::error("Fonnte notification failed: {$e->getMessage()}");
         }
+    }
+
+    public function sendTest(NotificationChannel $channel): array
+    {
+        $message = "✅ *Test Notifikasi WatchTower*\nChannel: {$channel->name}\nWaktu: " . now()->format('d-m-Y H:i:s') . "\nJika pesan ini diterima, konfigurasi sudah benar.";
+
+        try {
+            if ($channel->type === 'telegram') {
+                $res = Http::post("https://api.telegram.org/bot{$channel->token}/sendMessage", [
+                    'chat_id'    => $channel->target,
+                    'text'       => $message,
+                    'parse_mode' => 'MarkdownV2',
+                ]);
+                return ['ok' => $res->ok(), 'body' => $res->json()];
+            }
+
+            if ($channel->type === 'whatsapp') {
+                $res = Http::withHeaders(['Authorization' => $channel->token])
+                    ->timeout(15)
+                    ->asForm()
+                    ->post('https://api.fonnte.com/send', [
+                        'target'      => $channel->target,
+                        'message'     => $message,
+                        'countryCode' => '62',
+                    ]);
+                return ['ok' => $res->ok() && $res->json('status') !== false, 'body' => $res->json()];
+            }
+
+            if ($channel->type === 'webhook') {
+                $payload = json_encode(['event' => 'test', 'message' => $message, 'timestamp' => now()->toIso8601String()]);
+                $headers = ['Content-Type' => 'application/json', 'User-Agent' => 'WatchTower/1.0'];
+                if (!empty($channel->token)) {
+                    $headers['X-WatchTower-Signature'] = 'sha256=' . hash_hmac('sha256', $payload, $channel->token);
+                }
+                $res = Http::withHeaders($headers)->timeout(10)->withBody($payload, 'application/json')->post($channel->target);
+                return ['ok' => $res->ok(), 'body' => ['status_code' => $res->status()]];
+            }
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        return ['ok' => false, 'body' => ['error' => 'Unknown channel type']];
     }
 
     private function sendWebhook(NotificationChannel $channel, Monitor $monitor, string $event, string $message): void

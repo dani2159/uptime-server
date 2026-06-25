@@ -73,6 +73,11 @@
                 </td>
                 <td class="px-5 py-3 text-right">
                     <div class="flex items-center justify-end gap-3">
+                        <button type="button"
+                                onclick="testChannel({{ $channel->id }}, '{{ addslashes($channel->name) }}')"
+                                class="text-xs text-amber-500 dark:text-amber-400 hover:underline font-medium">
+                            <i class="fa-solid fa-paper-plane mr-1 text-[10px]"></i>Test
+                        </button>
                         <a href="{{ route('channels.edit', $channel) }}"
                            class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium">
                             <i class="fa-solid fa-pen-to-square mr-1 text-[10px]"></i>Edit
@@ -103,3 +108,40 @@
     </table>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+async function testChannel(id, name) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const { value: confirmed } = await Swal.fire({
+        title: 'Test "' + name + '"?',
+        text: 'Akan kirim pesan test ke channel ini.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0ea5e9',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fa-solid fa-paper-plane mr-1"></i>Kirim Test',
+        cancelButtonText: 'Batal',
+        background: isDark ? '#1e293b' : '#fff',
+        color: isDark ? '#e2e8f0' : '#111827',
+    });
+    if (!confirmed) return;
+
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    try {
+        const res = await fetch('/channels/' + id + '/test', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+        if (data.ok) {
+            Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Pesan test berhasil dikirim ke ' + name, toast: true, position: 'top-end', timer: 3000, showConfirmButton: false, timerProgressBar: true, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Gagal!', html: '<pre class="text-left text-xs mt-2 bg-gray-100 dark:bg-slate-700 p-2 rounded overflow-auto">' + JSON.stringify(data.body, null, 2) + '</pre>', background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+    }
+}
+</script>
+@endpush
