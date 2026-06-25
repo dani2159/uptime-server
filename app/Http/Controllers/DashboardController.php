@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Incident;
 use App\Models\Monitor;
 use App\Models\MonitorLog;
 use App\Models\NotificationChannel;
+use App\Services\NotificationService;
 use App\Services\UptimeChecker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,7 +80,7 @@ class DashboardController extends Controller
         ));
     }
 
-    public function checkAll(UptimeChecker $checker): JsonResponse
+    public function checkAll(UptimeChecker $checker, NotificationService $notifier): JsonResponse
     {
         set_time_limit(300);
 
@@ -86,9 +88,40 @@ class DashboardController extends Controller
         $results  = ['up' => 0, 'down' => 0];
 
         foreach ($monitors as $monitor) {
+            $previousStatus = $monitor->last_status;
+
             $result = $checker->check($monitor);
             $checker->saveResult($monitor, $result);
-            $results[$result['status'] === 'up' ? 'up' : 'down']++;
+
+            $currentStatus = $result['status'];
+            $results[$currentStatus === 'up' ? 'up' : 'down']++;
+
+            if ($currentStatus === 'down') {
+                $hasOpenIncident = Incident::open()->where('monitor_id', $monitor->id)->exists();
+                if ($previousStatus !== 'down' || !$hasOpenIncident) {
+                    $notifier->notifyDown($monitor);
+                    if (!$hasOpenIncident) {
+                        $monitor->refresh();
+                        Incident::create([
+                            'monitor_id' => $monitor->id,
+                            'category'   => 'monitor_downtime',
+                            'started_at' => $monitor->last_down_at ?? now(),
+                            'status'     => 'open',
+                        ]);
+                    }
+                }
+            } elseif ($currentStatus === 'up' && $previousStatus === 'down') {
+                $notifier->notifyRecovered($monitor);
+                $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
+                if ($incident) {
+                    $resolvedAt = now();
+                    $incident->update([
+                        'resolved_at'      => $resolvedAt,
+                        'status'           => 'closed',
+                        'duration_seconds' => $incident->started_at->diffInSeconds($resolvedAt),
+                    ]);
+                }
+            }
         }
 
         return response()->json([
