@@ -89,7 +89,10 @@
                 title="Toggle tema">
             <i id="theme-icon" class="fa-solid fa-moon text-slate-400 text-sm"></i>
         </button>
-        <span class="text-xs text-gray-400 dark:text-slate-500 hidden md:block font-mono">{{ now()->format('d M Y, H:i') }}</span>
+        <div class="hidden md:block text-right">
+            <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium"></p>
+            <p id="live-date"  class="text-[10px] text-gray-400 dark:text-slate-500"></p>
+        </div>
         @auth
         <div class="flex items-center gap-2 pl-2 ml-1 border-l border-sky-100 dark:border-slate-700">
             <span class="text-xs font-medium text-gray-500 dark:text-slate-400 hidden md:block">{{ auth()->user()->name }}</span>
@@ -113,6 +116,19 @@
 @stack('scripts')
 
 <script>
+function updateClock() {
+    const now = new Date();
+    const p = n => String(n).padStart(2, '0');
+    const el = document.getElementById('live-clock');
+    if (el) el.textContent = p(now.getHours()) + ':' + p(now.getMinutes()) + ':' + p(now.getSeconds());
+    const days   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const ed = document.getElementById('live-date');
+    if (ed) ed.textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+}
+updateClock();
+setInterval(updateClock, 1000);
+
 function updateThemeIcon() {
     const isDark = document.documentElement.classList.contains('dark');
     const icon = document.getElementById('theme-icon');
