@@ -47,30 +47,115 @@
 
         {{-- Desktop nav (center) --}}
         @php
-            $aNav = [
-                ['route' => 'dashboard',           'pattern' => 'dashboard',       'icon' => 'fa-house',                'label' => 'Dashboard'],
-                ['route' => 'monitors.index',      'pattern' => 'monitors.*',      'icon' => 'fa-chart-bar',            'label' => 'Monitors'],
-                ['route' => 'api-health.dashboard','pattern' => 'api-health.*',    'icon' => 'fa-bolt',                 'label' => 'API Health'],
-                ['route' => 'channels.index',      'pattern' => 'channels.*',      'icon' => 'fa-bell',                 'label' => 'Notifikasi'],
-                ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',   'icon' => 'fa-clock',                'label' => 'Maintenance'],
-                ['route' => 'incidents.index',     'pattern' => 'incidents.*',     'icon' => 'fa-triangle-exclamation', 'label' => 'Insiden'],
-                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
-                ['route' => 'status-pages.index',  'pattern' => 'status-pages.*', 'icon' => 'fa-circle-check',         'label' => 'Status Pages'],
-                ['route' => 'tags.index',          'pattern' => 'tags.*',          'icon' => 'fa-tags',                 'label' => 'Tags'],
-                ['route' => 'audit-logs.index',    'pattern' => 'audit-logs.*',    'icon' => 'fa-clock-rotate-left',    'label' => 'Audit Log'],
-                ['route' => 'escalations.index',   'pattern' => 'escalations.*',   'icon' => 'fa-bell-exclamation',     'label' => 'Eskalasi'],
-                ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',              'label' => 'Settings'],
+            $navGroups = [
+                [
+                    'label'   => 'Dashboard',
+                    'icon'    => 'fa-house',
+                    'route'   => 'dashboard',
+                    'pattern' => 'dashboard',
+                    'single'  => true,
+                ],
+                [
+                    'label'   => 'Monitoring',
+                    'icon'    => 'fa-chart-bar',
+                    'pattern' => 'monitors.*|api-health.*|maintenance.*|tags.*',
+                    'items'   => [
+                        ['route' => 'monitors.index',       'pattern' => 'monitors.*',     'icon' => 'fa-chart-bar',  'label' => 'Monitors'],
+                        ['route' => 'api-health.dashboard', 'pattern' => 'api-health.*',   'icon' => 'fa-bolt',       'label' => 'API Health'],
+                        ['route' => 'maintenance.index',    'pattern' => 'maintenance.*',  'icon' => 'fa-clock',      'label' => 'Maintenance'],
+                        ['route' => 'tags.index',           'pattern' => 'tags.*',         'icon' => 'fa-tags',       'label' => 'Tags'],
+                    ],
+                ],
+                [
+                    'label'   => 'Insiden',
+                    'icon'    => 'fa-triangle-exclamation',
+                    'pattern' => 'incidents.*|sla-report.*',
+                    'items'   => [
+                        ['route' => 'incidents.index',   'pattern' => 'incidents.*',   'icon' => 'fa-triangle-exclamation', 'label' => 'Daftar Insiden'],
+                        ['route' => 'sla-report.index',  'pattern' => 'sla-report.*',  'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
+                    ],
+                ],
+                [
+                    'label'   => 'Notifikasi',
+                    'icon'    => 'fa-bell',
+                    'pattern' => 'channels.*|escalations.*',
+                    'items'   => [
+                        ['route' => 'channels.index',    'pattern' => 'channels.*',    'icon' => 'fa-bell',              'label' => 'Channels'],
+                        ['route' => 'escalations.index', 'pattern' => 'escalations.*', 'icon' => 'fa-bell-slash',        'label' => 'Eskalasi'],
+                        ['route' => 'settings.notifications', 'pattern' => 'settings.notifications*', 'icon' => 'fa-pen-to-square', 'label' => 'Template Pesan'],
+                    ],
+                ],
+                [
+                    'label'   => 'Status Pages',
+                    'icon'    => 'fa-circle-check',
+                    'route'   => 'status-pages.index',
+                    'pattern' => 'status-pages.*',
+                    'single'  => true,
+                ],
+                [
+                    'label'   => 'Audit Log',
+                    'icon'    => 'fa-clock-rotate-left',
+                    'route'   => 'audit-logs.index',
+                    'pattern' => 'audit-logs.*',
+                    'single'  => true,
+                ],
+                [
+                    'label'   => 'Settings',
+                    'icon'    => 'fa-sliders',
+                    'route'   => 'settings.index',
+                    'pattern' => 'settings.index',
+                    'single'  => true,
+                ],
             ];
         @endphp
-        <nav class="hidden lg:flex items-center gap-0.5">
-            @foreach($aNav as $n)
-            <a href="{{ route($n['route']) }}"
-               class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
-                   {{ request()->routeIs($n['pattern'])
-                       ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
-                       : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
-                <i class="fa-solid {{ $n['icon'] }} mr-1"></i>{{ $n['label'] }}
-            </a>
+        <nav class="hidden lg:flex items-center gap-0.5" x-data="{ open: null }">
+            @foreach($navGroups as $gi => $group)
+            @if(!empty($group['single']))
+                {{-- Single link --}}
+                <a href="{{ route($group['route']) }}"
+                   class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
+                       {{ request()->routeIs($group['pattern'])
+                           ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                           : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                    <i class="fa-solid {{ $group['icon'] }} mr-1"></i>{{ $group['label'] }}
+                </a>
+            @else
+                {{-- Dropdown group --}}
+                @php
+                    $patterns = explode('|', $group['pattern']);
+                    $isActive = collect($patterns)->some(fn($p) => request()->routeIs($p));
+                @endphp
+                <div class="relative" @mouseenter="open = {{ $gi }}" @mouseleave="open = null">
+                    <button class="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
+                        {{ $isActive
+                            ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                            : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                        <i class="fa-solid {{ $group['icon'] }}"></i>
+                        {{ $group['label'] }}
+                        <i class="fa-solid fa-chevron-down text-[9px] opacity-60 transition-transform duration-150"
+                           :class="open === {{ $gi }} ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open === {{ $gi }}" x-cloak
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                         class="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg py-1 z-50">
+                        @foreach($group['items'] as $item)
+                        <a href="{{ route($item['route']) }}"
+                           class="flex items-center gap-2.5 px-4 py-2 text-xs transition-colors
+                               {{ request()->routeIs($item['pattern'])
+                                   ? 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20'
+                                   : 'text-gray-600 dark:text-slate-300 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                            <i class="fa-solid {{ $item['icon'] }} w-4 text-center text-sky-400 text-[11px]"></i>
+                            {{ $item['label'] }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             @endforeach
         </nav>
 
@@ -126,18 +211,48 @@
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 -translate-y-2"
-         class="lg:hidden border-t border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 grid grid-cols-2 gap-1">
-        @foreach($aNav as $n)
-        <a href="{{ route($n['route']) }}" @click="mobileOpen = false"
+         class="lg:hidden border-t border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 space-y-1"
+         x-data="{ mSub: null }">
+
+        @foreach($navGroups as $gi => $group)
+        @if(!empty($group['single']))
+        {{-- Single link --}}
+        <a href="{{ route($group['route']) }}" @click="mobileOpen = false"
            class="flex items-center gap-2 px-3 py-2 text-sm rounded-xl font-medium transition-colors
-               {{ request()->routeIs($n['pattern'])
-                   ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
-                   : 'text-gray-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
-            <i class="fa-solid {{ $n['icon'] }} w-4 text-center text-sky-400"></i>{{ $n['label'] }}
+               {{ request()->routeIs($group['pattern']) ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400' : 'text-gray-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+            <i class="fa-solid {{ $group['icon'] }} w-4 text-center text-sky-400"></i>{{ $group['label'] }}
         </a>
+        @else
+        {{-- Dropdown group --}}
+        @php
+            $mPatterns = explode('|', $group['pattern']);
+            $mActive = collect($mPatterns)->some(fn($p) => request()->routeIs($p));
+        @endphp
+        <div>
+            <button @click="mSub = mSub === {{ $gi }} ? null : {{ $gi }}"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl font-medium transition-colors
+                        {{ $mActive ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400' : 'text-gray-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                <i class="fa-solid {{ $group['icon'] }} w-4 text-center text-sky-400"></i>
+                <span class="flex-1 text-left">{{ $group['label'] }}</span>
+                <i class="fa-solid fa-chevron-right text-xs opacity-40 transition-transform duration-150"
+                   :class="mSub === {{ $gi }} ? 'rotate-90' : ''"></i>
+            </button>
+            <div x-show="mSub === {{ $gi }}" x-cloak class="ml-6 mt-0.5 space-y-0.5">
+                @foreach($group['items'] as $item)
+                <a href="{{ route($item['route']) }}" @click="mobileOpen = false"
+                   class="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors
+                       {{ request()->routeIs($item['pattern']) ? 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20' : 'text-gray-500 dark:text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                    <i class="fa-solid {{ $item['icon'] }} w-4 text-center text-sky-400 text-xs"></i>
+                    {{ $item['label'] }}
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
         @endforeach
+
         @if(!empty($serverIpInfo['ip']))
-        <div class="col-span-2 flex items-center gap-2 px-3 py-2 text-xs text-gray-400 dark:text-slate-500 border-t border-sky-50 dark:border-slate-700 mt-1 pt-2">
+        <div class="flex items-center gap-2 px-3 py-2 text-xs text-gray-400 dark:text-slate-500 border-t border-sky-50 dark:border-slate-700 mt-1 pt-2">
             <i class="fa-solid fa-tower-broadcast text-sky-400"></i>
             <span class="font-mono text-sky-600 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
             <span>· {{ $serverIpInfo['isp'] ?? '' }}</span>
