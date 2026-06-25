@@ -260,6 +260,14 @@
                 <span x-text="checking ? 'Checking...' : 'Cek'"></span>
             </button>
 
+            {{-- Silence button --}}
+            <button @click="silenceMonitor({{ $selected->id }}, '{{ addslashes($selected->name) }}')"
+                    class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-orange-200
+                           dark:border-orange-700/50 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400
+                           hover:bg-orange-100 font-semibold transition-colors">
+                <i class="fa-solid fa-bell-slash text-[10px]"></i> Silence
+            </button>
+
             <button onclick="openEditModal()"
                     class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-gray-200
                            dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-300
@@ -740,6 +748,35 @@ function openEditModal() {
             monitor: {!! $monitorEditJson !!}
         }
     }));
+}
+
+// Silence monitor - create quick maintenance window
+async function silenceMonitor(id, name) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const result = await Swal.fire({
+        title: 'Silence "' + name + '"',
+        text: 'Pilih durasi silence (notifikasi tidak dikirim):',
+        icon: 'info',
+        input: 'select',
+        inputOptions: { '1h': '1 Jam', '4h': '4 Jam', '24h': '24 Jam' },
+        inputPlaceholder: 'Pilih durasi',
+        showCancelButton: true,
+        confirmButtonColor: '#f97316',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fa-solid fa-bell-slash mr-1"></i>Silence',
+        cancelButtonText: 'Batal',
+        background: isDark ? '#1e293b' : '#fff',
+        color: isDark ? '#e2e8f0' : '#111827',
+    });
+    if (!result.isConfirmed || !result.value) return;
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    const r = await fetch(`/monitors/${id}/silence`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ duration: result.value }),
+    });
+    const d = await r.json();
+    Swal.fire({ icon: 'success', title: 'Disilence!', text: `Notifikasi diam hingga ${d.end_at}`, toast: true, position: 'top-end', timer: 4000, showConfirmButton: false, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
 }
 
 // Delete monitor via AJAX + SweetAlert

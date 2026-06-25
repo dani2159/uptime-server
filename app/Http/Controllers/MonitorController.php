@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Incident;
+use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
 use App\Models\NotificationChannel;
 use App\Models\Tag;
@@ -160,6 +161,31 @@ class MonitorController extends Controller
     {
         $monitor->update(['is_active' => !$monitor->is_active]);
         return back()->with('success', $monitor->is_active ? 'Monitor diaktifkan.' : 'Monitor dijeda.');
+    }
+
+    public function silence(Request $request, Monitor $monitor)
+    {
+        $request->validate(['duration' => 'required|in:1h,4h,24h,custom', 'custom_end' => 'required_if:duration,custom|nullable|date|after:now']);
+
+        $end = match($request->duration) {
+            '1h'     => now()->addHour(),
+            '4h'     => now()->addHours(4),
+            '24h'    => now()->addDay(),
+            'custom' => \Carbon\Carbon::parse($request->custom_end),
+        };
+
+        MaintenanceWindow::create([
+            'title'       => 'Silence: ' . $monitor->name,
+            'description' => 'Quick silence dari dashboard',
+            'start_at'    => now(),
+            'end_at'      => $end,
+            'monitor_ids' => [$monitor->id],
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'end_at' => $end->format('d-m-Y H:i')]);
+        }
+        return back()->with('success', "Monitor disilence hingga {$end->format('d-m-Y H:i')}.");
     }
 
     public function checkNow(Request $request, Monitor $monitor)

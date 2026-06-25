@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('monitors', MonitorController::class);
     Route::post('monitors/{monitor}/check', [MonitorController::class, 'checkNow'])->name('monitors.check-now');
     Route::patch('monitors/{monitor}/toggle', [MonitorController::class, 'toggle'])->name('monitors.toggle');
+    Route::post('monitors/{monitor}/silence', [MonitorController::class, 'silence'])->name('monitors.silence');
 
     Route::prefix('api-health')->name('api-health.')->group(function () {
         Route::get('/', [BpjsDashboardController::class, 'index'])->name('dashboard');
