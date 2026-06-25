@@ -536,8 +536,15 @@
                         <i class="fa-solid fa-dice mr-1"></i>Generate
                     </button>
                 </div>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                    URL: <code class="bg-sky-50 dark:bg-slate-700 px-1 rounded text-sky-600 dark:text-sky-400">/push/<span x-text="form.push_token || '{token}'"></span></code>
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1 flex items-center gap-1 flex-wrap">
+                    URL heartbeat:
+                    <code class="bg-sky-50 dark:bg-slate-700 px-1.5 py-0.5 rounded text-sky-600 dark:text-sky-400 break-all">{{ rtrim(config('app.url'), '/') }}/push/<span x-text="form.push_token || '{token}'"></span></code>
+                    <button type="button"
+                            @click="navigator.clipboard.writeText('{{ rtrim(config('app.url'), '/') }}/push/' + form.push_token)"
+                            x-show="form.push_token"
+                            class="text-sky-500 hover:text-sky-700 text-[10px]" title="Salin URL">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
                 </p>
             </div>
 
