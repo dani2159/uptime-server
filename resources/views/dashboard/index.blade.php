@@ -467,6 +467,7 @@
             <div>
                 <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Tipe Monitor <span class="text-red-400">*</span></label>
                 <select x-model="form.type"
+                        @change="onTypeChange()"
                         class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
                     <option value="http">HTTP(S) — Cek URL</option>
                     <option value="keyword">Keyword — Cari teks dalam respons</option>
@@ -778,13 +779,11 @@ function monitorModal() {
             notification_channels: [],
         },
 
-        init() {
+        onTypeChange() {
             const placeholders = ['push://heartbeat', 'tcp://placeholder'];
-            this.$watch('form.type', (newType) => {
-                if (['http','keyword','ping','dns'].includes(newType) && placeholders.includes(this.form.url)) {
-                    this.form.url = '';
-                }
-            });
+            if (['http','keyword','ping','dns'].includes(this.form.type) && placeholders.includes(this.form.url)) {
+                this.form.url = '';
+            }
         },
 
         openModal(detail) {

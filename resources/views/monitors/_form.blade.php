@@ -45,7 +45,8 @@
     {{-- URL: untuk http, keyword, ping --}}
     <div x-show="type !== 'tcp' && type !== 'push' && type !== 'dns'" class="mb-4">
         <label class="{{ $lbl }}">URL</label>
-        <input type="url" name="url" value="{{ $val('url') }}"
+        <input type="text" name="url" value="{{ $val('url') }}"
+               :disabled="type === 'tcp' || type === 'push' || type === 'dns'"
                class="{{ $inp }}" placeholder="https://example.com">
         @error('url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
@@ -72,7 +73,8 @@
                        min="1" max="65535" class="{{ $inp }}" placeholder="3306">
             </div>
         </div>
-        <input type="hidden" name="url" value="{{ $val('url', 'tcp://placeholder') }}">
+        <input type="hidden" name="url" value="{{ $val('url', 'tcp://placeholder') }}"
+               :disabled="type !== 'tcp'">
     </div>
 
     {{-- DNS --}}
@@ -80,7 +82,8 @@
         <div class="grid grid-cols-3 gap-4">
             <div>
                 <label class="{{ $lbl }}">Domain</label>
-                <input type="url" name="url" value="{{ $val('url') }}"
+                <input type="text" name="url" value="{{ $val('url') }}"
+                       :disabled="type !== 'dns'"
                        class="{{ $inp }}" placeholder="https://example.com">
             </div>
             <div>
@@ -111,7 +114,8 @@
                 dari cron eksternal
             </p>
         </div>
-        <input type="hidden" name="url" value="{{ $val('url', 'push://heartbeat') }}">
+        <input type="hidden" name="url" value="{{ $val('url', 'push://heartbeat') }}"
+               :disabled="type !== 'push'">
     </div>
 </div>
 
