@@ -147,9 +147,26 @@
          x-data="{
              checking: false,
              async cekNow() {
+                 const isDark = document.documentElement.classList.contains('dark');
+                 const { value: choice } = await Swal.fire({
+                     title: 'Check Monitor',
+                     text: 'Kirim notifikasi WA/Telegram jika DOWN?',
+                     icon: 'question',
+                     showDenyButton: true,
+                     showCancelButton: true,
+                     confirmButtonText: '<i class="fa-solid fa-bell mr-1"></i>Cek + Kirim Notif',
+                     denyButtonText: '<i class="fa-solid fa-bell-slash mr-1"></i>Cek Saja',
+                     cancelButtonText: 'Batal',
+                     confirmButtonColor: '#0ea5e9',
+                     denyButtonColor: '#6b7280',
+                     background: isDark ? '#1e293b' : '#fff',
+                     color: isDark ? '#e2e8f0' : '#111827',
+                 });
+                 if (choice === undefined) return;
+                 const notify = choice === true ? 1 : 0;
                  this.checking = true;
                  try {
-                     const r = await fetch('{{ route('monitors.check-now', $selected) }}', {
+                     const r = await fetch('{{ route('monitors.check-now', $selected) }}?notify=' + notify, {
                          method: 'POST',
                          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
                      });
@@ -159,8 +176,8 @@
                          icon: d.status === 'up' ? 'success' : (d.status === 'down' ? 'error' : 'info'),
                          title: d.message, toast: true, position: 'top-end',
                          timer: 3000, showConfirmButton: false, timerProgressBar: true,
-                         background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
-                         color: document.documentElement.classList.contains('dark') ? '#e2e8f0' : '#111827',
+                         background: isDark ? '#1e293b' : '#fff',
+                         color: isDark ? '#e2e8f0' : '#111827',
                      });
                      setTimeout(() => location.reload(), 1600);
                  } catch(e) {
@@ -744,17 +761,36 @@ function sidebar() {
         checking: false,
         async checkAll() {
             if (this.checking) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            const { value: choice } = await Swal.fire({
+                title: 'Check All Monitor',
+                text: 'Kirim notifikasi WA/Telegram jika ada yang DOWN?',
+                icon: 'question',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-bell mr-1"></i>Cek + Kirim Notif',
+                denyButtonText: '<i class="fa-solid fa-bell-slash mr-1"></i>Cek Saja',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#0ea5e9',
+                denyButtonColor: '#6b7280',
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#e2e8f0' : '#111827',
+            });
+            if (choice === undefined) return; // Batal
+            const notify = choice === true ? 1 : 0;
             this.checking = true;
             try {
-                const r = await fetch('{{ route('dashboard.check-all') }}', {
+                const r = await fetch('{{ route('dashboard.check-all') }}?notify=' + notify, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                 });
                 const d = await r.json();
                 Swal.fire({
-                    icon: 'success',
-                    title: `Selesai! ${d.up} up, ${d.down} down`,
-                    toast: true, position: 'top-end', timer: 2500, showConfirmButton: false, timerProgressBar: true,
+                    icon: d.down > 0 ? 'warning' : 'success',
+                    title: `Selesai! ${d.up} UP, ${d.down} DOWN`,
+                    text: notify ? (d.down > 0 ? 'Notifikasi terkirim ke channel aktif.' : '') : 'Tanpa notifikasi.',
+                    toast: true, position: 'top-end', timer: 3000, showConfirmButton: false, timerProgressBar: true,
+                    background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827',
                 });
                 setTimeout(() => location.reload(), 800);
             } catch {

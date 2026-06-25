@@ -80,12 +80,13 @@ class DashboardController extends Controller
         ));
     }
 
-    public function checkAll(UptimeChecker $checker, NotificationService $notifier): JsonResponse
+    public function checkAll(Request $request, UptimeChecker $checker, NotificationService $notifier): JsonResponse
     {
         set_time_limit(300);
 
-        $monitors = Monitor::where('is_active', true)->get();
-        $results  = ['up' => 0, 'down' => 0];
+        $withNotify = filter_var($request->query('notify', false), FILTER_VALIDATE_BOOLEAN);
+        $monitors   = Monitor::where('is_active', true)->get();
+        $results    = ['up' => 0, 'down' => 0];
 
         foreach ($monitors as $monitor) {
             $previousStatus = $monitor->last_status;
@@ -98,20 +99,19 @@ class DashboardController extends Controller
 
             if ($currentStatus === 'down') {
                 $hasOpenIncident = Incident::open()->where('monitor_id', $monitor->id)->exists();
-                if ($previousStatus !== 'down' || !$hasOpenIncident) {
+                if (!$hasOpenIncident) {
+                    $monitor->refresh();
+                    Incident::create([
+                        'monitor_id' => $monitor->id,
+                        'category'   => 'monitor_downtime',
+                        'started_at' => $monitor->last_down_at ?? now(),
+                        'status'     => 'open',
+                    ]);
+                }
+                if ($withNotify && ($previousStatus !== 'down' || !$hasOpenIncident)) {
                     $notifier->notifyDown($monitor);
-                    if (!$hasOpenIncident) {
-                        $monitor->refresh();
-                        Incident::create([
-                            'monitor_id' => $monitor->id,
-                            'category'   => 'monitor_downtime',
-                            'started_at' => $monitor->last_down_at ?? now(),
-                            'status'     => 'open',
-                        ]);
-                    }
                 }
             } elseif ($currentStatus === 'up' && $previousStatus === 'down') {
-                $notifier->notifyRecovered($monitor);
                 $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
                 if ($incident) {
                     $resolvedAt = now();
@@ -120,6 +120,9 @@ class DashboardController extends Controller
                         'status'           => 'closed',
                         'duration_seconds' => $incident->started_at->diffInSeconds($resolvedAt),
                     ]);
+                }
+                if ($withNotify) {
+                    $notifier->notifyRecovered($monitor);
                 }
             }
         }

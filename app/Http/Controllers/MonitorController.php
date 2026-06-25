@@ -167,23 +167,23 @@ class MonitorController extends Controller
 
         $currentStatus = $result['status'];
 
-        // Kirim notifikasi jika status berubah jadi down, atau sudah down & belum ada insiden terbuka
+        $withNotify = filter_var($request->query('notify', false), FILTER_VALIDATE_BOOLEAN);
+
         if ($currentStatus === 'down') {
             $hasOpenIncident = Incident::open()->where('monitor_id', $monitor->id)->exists();
-            if ($previousStatus !== 'down' || !$hasOpenIncident) {
+            if (!$hasOpenIncident) {
+                $monitor->refresh();
+                Incident::create([
+                    'monitor_id' => $monitor->id,
+                    'category'   => 'monitor_downtime',
+                    'started_at' => $monitor->last_down_at ?? now(),
+                    'status'     => 'open',
+                ]);
+            }
+            if ($withNotify && ($previousStatus !== 'down' || !$hasOpenIncident)) {
                 $this->notifier->notifyDown($monitor);
-                if (!$hasOpenIncident) {
-                    $monitor->refresh();
-                    Incident::create([
-                        'monitor_id' => $monitor->id,
-                        'category'   => 'monitor_downtime',
-                        'started_at' => $monitor->last_down_at ?? now(),
-                        'status'     => 'open',
-                    ]);
-                }
             }
         } elseif ($currentStatus === 'up' && $previousStatus === 'down') {
-            $this->notifier->notifyRecovered($monitor);
             $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
             if ($incident) {
                 $resolvedAt = now();
@@ -192,6 +192,9 @@ class MonitorController extends Controller
                     'status'           => 'closed',
                     'duration_seconds' => $incident->started_at->diffInSeconds($resolvedAt),
                 ]);
+            }
+            if ($withNotify) {
+                $this->notifier->notifyRecovered($monitor);
             }
         }
 

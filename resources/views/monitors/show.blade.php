@@ -24,15 +24,32 @@
          x-data="{
              checking: false,
              async cekNow() {
+                 const isDark = document.documentElement.classList.contains('dark');
+                 const { value: choice } = await Swal.fire({
+                     title: 'Check Monitor',
+                     text: 'Kirim notifikasi WA/Telegram jika DOWN?',
+                     icon: 'question',
+                     showDenyButton: true,
+                     showCancelButton: true,
+                     confirmButtonText: '<i class="fa-solid fa-bell mr-1"></i>Cek + Kirim Notif',
+                     denyButtonText: '<i class="fa-solid fa-bell-slash mr-1"></i>Cek Saja',
+                     cancelButtonText: 'Batal',
+                     confirmButtonColor: '#0ea5e9',
+                     denyButtonColor: '#6b7280',
+                     background: isDark ? '#1e293b' : '#fff',
+                     color: isDark ? '#e2e8f0' : '#111827',
+                 });
+                 if (choice === undefined) return;
+                 const notify = choice === true ? 1 : 0;
                  this.checking = true;
                  try {
-                     const r = await fetch('{{ route('monitors.check-now', $monitor) }}', {
+                     const r = await fetch('{{ route('monitors.check-now', $monitor) }}?notify=' + notify, {
                          method: 'POST',
                          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
                      });
                      const d = await r.json();
                      this.checking = false;
-                     Swal.fire({ icon: d.status === 'up' ? 'success' : 'error', title: d.message, toast: true, position: 'top-end', timer: 3000, showConfirmButton: false, timerProgressBar: true });
+                     Swal.fire({ icon: d.status === 'up' ? 'success' : 'error', title: d.message, toast: true, position: 'top-end', timer: 3000, showConfirmButton: false, timerProgressBar: true, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
                      setTimeout(() => location.reload(), 1600);
                  } catch { this.checking = false; }
              }
