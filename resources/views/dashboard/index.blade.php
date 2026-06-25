@@ -562,7 +562,7 @@
                            class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Retry</label>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Gagal → DOWN & Insiden</label>
                     <input type="number" x-model="form.retry_count" min="1" max="10"
                            class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
                 </div>

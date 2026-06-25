@@ -35,10 +35,10 @@
                    min="1" max="60" class="{{ $inp }}">
         </div>
         <div>
-            <label class="{{ $lbl }}">Retry sebelum DOWN</label>
+            <label class="{{ $lbl }}">Gagal → DOWN & Insiden</label>
             <input type="number" name="retry_count" value="{{ $val('retry_count', 1) }}"
                    min="1" max="10" class="{{ $inp }}">
-            <p class="text-xs text-gray-400 mt-1">Jumlah gagal sebelum notif</p>
+            <p class="text-xs text-gray-400 mt-1">Gagal N kali berturut = DOWN + buat insiden + notif</p>
         </div>
     </div>
 

@@ -1,5 +1,12 @@
 FROM php:8.2-fpm-alpine
 
+# Timezone Asia/Jakarta
+ENV TZ=Asia/Jakarta
+RUN apk add --no-cache tzdata \
+    && cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
+    && echo "Asia/Jakarta" > /etc/timezone \
+    && apk del tzdata
+
 # System dependencies
 RUN apk add --no-cache \
     nginx \
