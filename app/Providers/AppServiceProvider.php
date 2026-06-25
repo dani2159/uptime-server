@@ -6,6 +6,9 @@ use App\Services\ApiHealthRegistry;
 use App\Services\BpjsChecker;
 use App\Services\GenericApiChecker;
 use App\Services\SatuSehatChecker;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,5 +36,19 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot(): void {}
+    public function boot(): void
+    {
+        View::composer(['layouts.app', 'layouts.kuma'], function ($view) {
+            $ipInfo = Cache::remember('server_ip_info', 300, function () {
+                try {
+                    $res = Http::timeout(5)->get('http://ip-api.com/json?fields=status,query,isp,country,city');
+                    if ($res->ok() && $res->json('status') === 'success') {
+                        return ['ip' => $res->json('query'), 'isp' => $res->json('isp'), 'city' => $res->json('city'), 'country' => $res->json('country'), 'error' => null];
+                    }
+                } catch (\Throwable) {}
+                return ['ip' => null, 'isp' => null, 'city' => null, 'country' => null, 'error' => 'unavailable'];
+            });
+            $view->with('serverIpInfo', $ipInfo);
+        });
+    }
 }

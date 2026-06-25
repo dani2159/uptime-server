@@ -21,6 +21,59 @@
     </div>
     @endif
 
+    {{-- Server IP / ISP Card --}}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm overflow-hidden mb-4"
+         x-data="{
+             loading: false,
+             info: @js($serverIpInfo ?? []),
+             refresh() {
+                 this.loading = true;
+                 fetch('{{ route('settings.ip-info') }}', {
+                     method: 'POST',
+                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
+                 }).then(r => r.json()).then(d => { this.info = d; }).finally(() => { this.loading = false; });
+             }
+         }">
+        <div class="px-5 py-3.5 border-b border-sky-50 dark:border-slate-700 bg-sky-50/40 dark:bg-slate-700/30 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-tower-broadcast text-sky-500 text-sm"></i>
+                <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">Koneksi Server</span>
+            </div>
+            <button type="button" @click="refresh()"
+                    :disabled="loading"
+                    class="text-xs text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 disabled:opacity-50">
+                <i class="fa-solid fa-rotate-right text-[10px]" :class="{ 'animate-spin': loading }"></i>
+                Refresh
+            </button>
+        </div>
+        <div class="p-5">
+            <template x-if="info.error && !info.ip">
+                <p class="text-sm text-gray-400 dark:text-slate-500 italic">Gagal mengambil info IP dari server.</p>
+            </template>
+            <template x-if="info.ip">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Public IP</p>
+                        <p class="font-mono font-bold text-sky-600 dark:text-sky-400 text-lg" x-text="info.ip"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-0.5">ISP / Provider</p>
+                        <p class="text-sm font-semibold text-gray-800 dark:text-slate-100" x-text="info.isp ?? '-'"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Lokasi</p>
+                        <p class="text-sm text-gray-600 dark:text-slate-300" x-text="(info.city ?? '') + (info.country ? ', ' + info.country : '')"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Org / ASN</p>
+                        <p class="text-sm text-gray-600 dark:text-slate-300" x-text="info.org ?? '-'"></p>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+    </div>
+
     <form method="POST" action="{{ route('settings.update') }}">
         @csrf
         @method('PUT')
