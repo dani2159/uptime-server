@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\BpjsDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IncidentController;
@@ -43,6 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('status-pages', StatusPageController::class)->except(['show']);
     Route::resource('incidents', IncidentController::class)->except(['show']);
     Route::get('/sla-report', [SlaReportController::class, 'index'])->name('sla-report.index');
+
+    Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');

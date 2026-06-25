@@ -56,6 +56,9 @@
                 ['route' => 'incidents.index',     'pattern' => 'incidents.*',     'icon' => 'fa-triangle-exclamation', 'label' => 'Insiden'],
                 ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
                 ['route' => 'status-pages.index',  'pattern' => 'status-pages.*', 'icon' => 'fa-circle-check',         'label' => 'Status Pages'],
+                ['route' => 'tags.index',          'pattern' => 'tags.*',          'icon' => 'fa-tags',                 'label' => 'Tags'],
+                ['route' => 'audit-logs.index',    'pattern' => 'audit-logs.*',    'icon' => 'fa-clock-rotate-left',    'label' => 'Audit Log'],
+                ['route' => 'escalations.index',   'pattern' => 'escalations.*',   'icon' => 'fa-bell-exclamation',     'label' => 'Eskalasi'],
                 ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',              'label' => 'Settings'],
             ];
         @endphp

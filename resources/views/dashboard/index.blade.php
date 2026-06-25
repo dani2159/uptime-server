@@ -41,9 +41,10 @@
     </div>
 
     {{-- Search --}}
-    <div class="px-4 pb-3 flex-shrink-0">
+    <div class="px-4 pb-2 flex-shrink-0">
         <form method="GET" action="{{ route('dashboard') }}">
             @if($selected)<input type="hidden" name="selected" value="{{ $selected->id }}">@endif
+            @if(request('tag'))<input type="hidden" name="tag" value="{{ request('tag') }}">@endif
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-sky-400 text-xs"></i>
                 <input type="text" name="q" value="{{ $search }}" placeholder="Cari monitor..."
@@ -55,6 +56,25 @@
             </div>
         </form>
     </div>
+
+    {{-- Tag filter --}}
+    @if(isset($allTags) && $allTags->isNotEmpty())
+    <div class="px-4 pb-2 flex-shrink-0 flex flex-wrap gap-1">
+        <a href="{{ route('dashboard', array_filter(['q' => $search ?: null, 'selected' => $selected?->id])) }}"
+           class="text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors
+               {{ !request('tag') ? 'bg-sky-500 text-white border-sky-500' : 'border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-sky-300' }}">
+            Semua
+        </a>
+        @foreach($allTags as $t)
+        <a href="{{ route('dashboard', array_filter(['q' => $search ?: null, 'tag' => $t->id, 'selected' => $selected?->id])) }}"
+           class="text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors
+               {{ request('tag') == $t->id ? 'text-white' : 'text-gray-500 dark:text-slate-400' }}"
+           style="{{ request('tag') == $t->id ? "background:{$t->color};border-color:{$t->color}" : "border-color:{$t->color}40;color:{$t->color}" }}">
+            {{ $t->name }}
+        </a>
+        @endforeach
+    </div>
+    @endif
 
     {{-- Daftar monitor --}}
     <div class="sidebar-list flex-1 overflow-y-auto px-2 pb-2">
@@ -97,6 +117,14 @@
                         {{ $monitor->domain }}
                     @endif
                 </p>
+                @if($monitor->tags->isNotEmpty())
+                <div class="flex flex-wrap gap-1 mt-1">
+                    @foreach($monitor->tags as $tag)
+                    <span class="text-[9px] px-1.5 py-0 rounded-full font-medium text-white leading-4"
+                          style="background: {{ $tag->color }}">{{ $tag->name }}</span>
+                    @endforeach
+                </div>
+                @endif
             </div>
 
             {{-- Uptime + mini bars --}}

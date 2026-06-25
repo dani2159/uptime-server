@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Monitor extends Model
@@ -31,6 +32,11 @@ class Monitor extends Model
         'uptime_7d'             => 'decimal:2',
         'uptime_30d'            => 'decimal:2',
     ];
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'monitor_tag');
+    }
 
     public function ips(): HasMany
     {

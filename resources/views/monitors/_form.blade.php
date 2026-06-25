@@ -119,6 +119,26 @@
     </div>
 </div>
 
+{{-- Tags --}}
+@if(isset($tags) && $tags->isNotEmpty())
+<div>
+    <label class="{{ $lbl }}">Tags</label>
+    @php $selectedTags = old('tags', $monitor?->tags->pluck('id')->toArray() ?? []); @endphp
+    <div class="flex flex-wrap gap-2 mt-1">
+        @foreach($tags as $tag)
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer px-3 py-1.5 rounded-full border-2 transition-all"
+               :class="" style="border-color: {{ $tag->color }}20">
+            <input type="checkbox" name="tags[]" value="{{ $tag->id }}"
+                   {{ in_array($tag->id, $selectedTags) ? 'checked' : '' }}
+                   class="rounded" style="accent-color: {{ $tag->color }}">
+            <span class="w-2.5 h-2.5 rounded-full inline-block" style="background: {{ $tag->color }}"></span>
+            <span class="font-medium text-gray-700 dark:text-slate-200 text-xs">{{ $tag->name }}</span>
+        </label>
+        @endforeach
+    </div>
+</div>
+@endif
+
 {{-- Notification channels --}}
 @if($channels->isNotEmpty())
 <div>

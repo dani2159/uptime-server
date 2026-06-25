@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Incident;
 use App\Models\Monitor;
 use App\Models\NotificationChannel;
+use App\Models\Tag;
 use App\Services\DnsResolver;
 use App\Services\NotificationService;
 use App\Services\SslChecker;
@@ -29,7 +30,8 @@ class MonitorController extends Controller
     public function create()
     {
         $channels = NotificationChannel::where('is_active', true)->get();
-        return view('monitors.create', compact('channels'));
+        $tags     = Tag::orderBy('name')->get();
+        return view('monitors.create', compact('channels', 'tags'));
     }
 
     public function store(Request $request)
@@ -51,9 +53,12 @@ class MonitorController extends Controller
             'dns_resolve_type'      => 'nullable|in:A,AAAA,CNAME,MX',
             'dns_expected_value'    => 'nullable|string|max:255',
             'notification_channels' => 'nullable|array',
+            'tags'                  => 'nullable|array',
+            'tags.*'                => 'integer|exists:tags,id',
         ]);
 
         $monitor = Monitor::create($data);
+        $monitor->tags()->sync($request->input('tags', []));
         $this->resolver->resolve($monitor);
 
         if ($ssl = $this->sslChecker->check($monitor)) {
@@ -90,7 +95,8 @@ class MonitorController extends Controller
     public function edit(Monitor $monitor)
     {
         $channels = NotificationChannel::where('is_active', true)->get();
-        return view('monitors.edit', compact('monitor', 'channels'));
+        $tags     = Tag::orderBy('name')->get();
+        return view('monitors.edit', compact('monitor', 'channels', 'tags'));
     }
 
     public function update(Request $request, Monitor $monitor)
@@ -113,9 +119,12 @@ class MonitorController extends Controller
             'dns_expected_value'    => 'nullable|string|max:255',
             'is_active'             => 'boolean',
             'notification_channels' => 'nullable|array',
+            'tags'                  => 'nullable|array',
+            'tags.*'                => 'integer|exists:tags,id',
         ]);
 
         $monitor->update($data);
+        $monitor->tags()->sync($request->input('tags', []));
 
         if ($request->expectsJson()) {
             return response()->json([

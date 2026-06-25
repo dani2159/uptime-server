@@ -6,6 +6,7 @@ use App\Models\Incident;
 use App\Models\Monitor;
 use App\Models\MonitorLog;
 use App\Models\NotificationChannel;
+use App\Models\Tag;
 use App\Services\NotificationService;
 use App\Services\UptimeChecker;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,9 @@ class DashboardController extends Controller
     {
         $search     = $request->get('q', '');
         $selectedId = $request->get('selected');
+        $tagFilter  = $request->get('tag');
 
-        $sidebarQuery = Monitor::with('heartbeatLogs')
+        $sidebarQuery = Monitor::with(['heartbeatLogs', 'tags'])
             ->orderByRaw("FIELD(last_status, 'down', 'pending', 'up')")
             ->orderBy('name');
 
@@ -29,7 +31,12 @@ class DashboardController extends Controller
                 ->orWhere('url', 'like', "%{$search}%"));
         }
 
+        if ($tagFilter) {
+            $sidebarQuery->whereHas('tags', fn($q) => $q->where('tags.id', $tagFilter));
+        }
+
         $monitors = $sidebarQuery->get();
+        $allTags  = Tag::orderBy('name')->get();
 
         $all   = Monitor::all();
         $stats = [
@@ -77,7 +84,7 @@ class DashboardController extends Controller
         return view('dashboard.index', compact(
             'monitors', 'stats', 'search',
             'selected', 'heartbeats', 'responseHistory', 'avgResponse24h',
-            'channels'
+            'channels', 'allTags'
         ));
     }
 
