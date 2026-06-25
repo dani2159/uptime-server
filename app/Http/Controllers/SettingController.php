@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AppSetting;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -80,6 +81,37 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Template notifikasi berhasil disimpan.');
+    }
+
+    public function saveReportSettings(Request $request)
+    {
+        $request->validate([
+            'report_enabled'    => 'boolean',
+            'report_daily'      => 'boolean',
+            'report_weekly'     => 'boolean',
+            'report_time'       => 'required|date_format:H:i',
+            'report_channel_ids' => 'nullable|array',
+            'report_channel_ids.*' => 'integer|exists:notification_channels,id',
+        ]);
+
+        AppSetting::set('report_enabled',    $request->boolean('report_enabled') ? '1' : '0');
+        AppSetting::set('report_daily',      $request->boolean('report_daily')   ? '1' : '0');
+        AppSetting::set('report_weekly',     $request->boolean('report_weekly')  ? '1' : '0');
+        AppSetting::set('report_time',       $request->input('report_time', '07:00'));
+        AppSetting::set('report_channel_ids', json_encode($request->input('report_channel_ids', [])));
+
+        return back()->with('success', 'Pengaturan laporan disimpan.');
+    }
+
+    public function sendTestReport()
+    {
+        try {
+            Artisan::call('monitor:report', ['--period' => 'daily']);
+            $output = Artisan::output();
+            return response()->json(['ok' => true, 'message' => trim($output) ?: 'Laporan terkirim.']);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request)

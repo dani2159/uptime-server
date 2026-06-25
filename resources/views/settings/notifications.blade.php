@@ -132,6 +132,70 @@
             </button>
         </div>
     </form>
+
+    {{-- Laporan Otomatis --}}
+    <div class="mt-10">
+        <h2 class="text-lg font-semibold dark:text-white mb-4">
+            <i class="fas fa-chart-line mr-2 text-sky-500"></i>Laporan Otomatis
+        </h2>
+        <form method="POST" action="{{ route('settings.report.save') }}"
+              class="bg-white dark:bg-slate-800 rounded-2xl shadow p-6 space-y-5">
+            @csrf
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="flex items-center gap-3">
+                    <input type="hidden" name="report_enabled" value="0">
+                    <input type="checkbox" name="report_enabled" value="1" id="rep_enabled"
+                           @checked(AppSetting::get('report_enabled', '0'))
+                           class="w-4 h-4 text-sky-500 rounded">
+                    <label for="rep_enabled" class="text-sm dark:text-slate-300 font-medium">Aktifkan Laporan Otomatis</label>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="hidden" name="report_daily" value="0">
+                    <input type="checkbox" name="report_daily" value="1" id="rep_daily"
+                           @checked(AppSetting::get('report_daily', '0'))
+                           class="w-4 h-4 text-sky-500 rounded">
+                    <label for="rep_daily" class="text-sm dark:text-slate-300">Harian</label>
+                    <input type="hidden" name="report_weekly" value="0">
+                    <input type="checkbox" name="report_weekly" value="1" id="rep_weekly"
+                           @checked(AppSetting::get('report_weekly', '0'))
+                           class="w-4 h-4 text-sky-500 rounded ml-4">
+                    <label for="rep_weekly" class="text-sm dark:text-slate-300">Mingguan (Senin)</label>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jam Kirim</label>
+                    <input type="time" name="report_time"
+                           value="{{ AppSetting::get('report_time', '07:00') }}"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Channel Penerima</label>
+                    @php $repChannels = json_decode(AppSetting::get('report_channel_ids', '[]'), true); @endphp
+                    <div class="space-y-1 max-h-32 overflow-y-auto">
+                        @foreach(\App\Models\NotificationChannel::where('is_active', true)->orderBy('name')->get() as $ch)
+                        <label class="flex items-center gap-2 text-sm dark:text-slate-300">
+                            <input type="checkbox" name="report_channel_ids[]" value="{{ $ch->id }}"
+                                   @checked(in_array($ch->id, $repChannels))
+                                   class="w-4 h-4 text-sky-500 rounded">
+                            {{ $ch->name }} ({{ $ch->type }})
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+                <button type="button" onclick="sendTestReport()"
+                        class="px-4 py-2 text-sm rounded-lg bg-gray-100 dark:bg-slate-700 dark:text-slate-200 hover:bg-gray-200">
+                    <i class="fas fa-paper-plane mr-1"></i>Kirim Sekarang (Test)
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-medium">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i>Simpan Pengaturan Laporan
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
 
@@ -143,6 +207,18 @@ const defaults = {
     slow:       {{ Js::from($defaults['notif_slow_body']) }},
     escalation: {{ Js::from($defaults['notif_escalation_body']) }},
 };
+
+async function sendTestReport() {
+    const r = await fetch('{{ route("settings.report.test") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+            'Accept': 'application/json',
+        },
+    });
+    const data = await r.json();
+    Swal.fire({ icon: data.ok ? 'success' : 'error', title: data.ok ? 'Laporan terkirim!' : 'Gagal', text: data.message || '' });
+}
 
 function resetTemplate(type) {
     const isDark = document.documentElement.classList.contains('dark');

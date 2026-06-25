@@ -1,10 +1,26 @@
 <?php
 
+use App\Models\AppSetting;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('monitor:check')->everyMinute();
 Schedule::command('monitor:ssl-check')->twiceDaily(8, 20);
+
+// Laporan otomatis — konfigurasi dari AppSetting
+try {
+    if (AppSetting::get('report_enabled', '0')) {
+        $reportTime = AppSetting::get('report_time', '07:00');
+        if (AppSetting::get('report_daily', '0')) {
+            Schedule::command('monitor:report --period=daily')->dailyAt($reportTime);
+        }
+        if (AppSetting::get('report_weekly', '0')) {
+            Schedule::command('monitor:report --period=weekly')->weeklyOn(1, $reportTime);
+        }
+    }
+} catch (\Throwable) {
+    // AppSetting table may not exist yet
+}
 
 // BPJS interval dibaca dari settings — default 10 menit jika tabel belum ada
 try {
