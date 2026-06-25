@@ -31,7 +31,7 @@ class MonitorController extends Controller
 
     public function store(Request $request)
     {
-        $urlRule = in_array($request->type, ['http', 'keyword']) ? 'required|url|max:500' : 'required|string|max:500';
+        $urlRule = in_array($request->type, ['http', 'keyword']) ? ['required', 'string', 'max:500', 'regex:/^https?:\/\/.+/'] : 'required|string|max:500';
 
         $data = $request->validate([
             'name'                  => 'required|string|max:100',
@@ -92,7 +92,7 @@ class MonitorController extends Controller
 
     public function update(Request $request, Monitor $monitor)
     {
-        $urlRule = in_array($request->type, ['http', 'keyword']) ? 'required|url|max:500' : 'required|string|max:500';
+        $urlRule = in_array($request->type, ['http', 'keyword']) ? ['required', 'string', 'max:500', 'regex:/^https?:\/\/.+/'] : 'required|string|max:500';
 
         $data = $request->validate([
             'name'                  => 'required|string|max:100',

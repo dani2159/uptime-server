@@ -29,83 +29,117 @@
 </head>
 <body class="bg-sky-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen">
 
-<header class="h-14 bg-white dark:bg-slate-800 border-b border-sky-100 dark:border-slate-700 flex items-center px-5 sticky top-0 z-30 shadow-sm relative">
+<header class="bg-white dark:bg-slate-800 border-b border-sky-100 dark:border-slate-700 sticky top-0 z-30 shadow-sm" x-data="{ mobileOpen: false }">
 
-    {{-- Brand (left) --}}
-    <div class="flex-shrink-0">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-            <div class="w-9 h-9 flex-shrink-0">
-                <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-full h-full object-contain">
-            </div>
+    {{-- Top bar --}}
+    <div class="flex items-center gap-2 px-4 h-14">
+
+        {{-- Brand --}}
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 flex-shrink-0">
+            <img src="{{ asset('images/logo-uptime.png') }}" alt="WatchTower" class="w-8 h-8 object-contain">
             <div class="hidden sm:block">
                 <p class="font-bold text-gray-800 dark:text-slate-100 leading-none text-sm">WatchTower</p>
                 <p class="text-[10px] text-sky-500 leading-none mt-0.5">Uptime Monitor</p>
             </div>
         </a>
-    </div>
 
-    {{-- Nav (center, absolute) --}}
-    <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5">
+        {{-- Desktop nav --}}
         @php
             $aNav = [
-                ['route' => 'dashboard',           'pattern' => 'dashboard',        'icon' => 'fa-house',        'label' => 'Dashboard'],
-                ['route' => 'monitors.index',      'pattern' => 'monitors.*',       'icon' => 'fa-chart-bar',    'label' => 'Monitors'],
-                ['route' => 'api-health.dashboard','pattern' => 'api-health.*',     'icon' => 'fa-bolt',         'label' => 'API Health'],
-                ['route' => 'channels.index',      'pattern' => 'channels.*',       'icon' => 'fa-bell',         'label' => 'Notifikasi'],
-                ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',    'icon' => 'fa-clock',        'label' => 'Maintenance'],
+                ['route' => 'dashboard',           'pattern' => 'dashboard',       'icon' => 'fa-house',                'label' => 'Dashboard'],
+                ['route' => 'monitors.index',      'pattern' => 'monitors.*',      'icon' => 'fa-chart-bar',            'label' => 'Monitors'],
+                ['route' => 'api-health.dashboard','pattern' => 'api-health.*',    'icon' => 'fa-bolt',                 'label' => 'API Health'],
+                ['route' => 'channels.index',      'pattern' => 'channels.*',      'icon' => 'fa-bell',                 'label' => 'Notifikasi'],
+                ['route' => 'maintenance.index',   'pattern' => 'maintenance.*',   'icon' => 'fa-clock',                'label' => 'Maintenance'],
                 ['route' => 'incidents.index',     'pattern' => 'incidents.*',     'icon' => 'fa-triangle-exclamation', 'label' => 'Insiden'],
-                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',   'label' => 'SLA Report'],
-                ['route' => 'status-pages.index',  'pattern' => 'status-pages.*',  'icon' => 'fa-circle-check', 'label' => 'Status Pages'],
-                ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',      'label' => 'Settings'],
+                ['route' => 'sla-report.index',    'pattern' => 'sla-report.*',    'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
+                ['route' => 'status-pages.index',  'pattern' => 'status-pages.*', 'icon' => 'fa-circle-check',         'label' => 'Status Pages'],
+                ['route' => 'settings.index',      'pattern' => 'settings.*',      'icon' => 'fa-sliders',              'label' => 'Settings'],
             ];
         @endphp
-        @foreach($aNav as $n)
-        <a href="{{ route($n['route']) }}"
-           class="px-3 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap
-               {{ request()->routeIs($n['pattern'])
-                   ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
-                   : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
-            <i class="fa-solid {{ $n['icon'] }} mr-1"></i>{{ $n['label'] }}
-        </a>
-        @endforeach
-    </nav>
+        <nav class="hidden lg:flex items-center gap-0.5 ml-3 flex-1 overflow-x-auto">
+            @foreach($aNav as $n)
+            <a href="{{ route($n['route']) }}"
+               class="px-2.5 py-1.5 text-xs rounded-lg font-medium transition-colors whitespace-nowrap flex-shrink-0
+                   {{ request()->routeIs($n['pattern'])
+                       ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                       : 'text-gray-500 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+                <i class="fa-solid {{ $n['icon'] }} mr-1"></i>{{ $n['label'] }}
+            </a>
+            @endforeach
+        </nav>
 
-    {{-- Right: IP badge + dark toggle + time --}}
-    <div class="ml-auto flex items-center gap-2">
+        {{-- Right actions --}}
+        <div class="ml-auto flex items-center gap-2 flex-shrink-0">
 
-        @if(!empty($serverIpInfo['ip']))
-        <div class="hidden lg:flex items-center gap-1.5 bg-sky-50 dark:bg-slate-700/60 border border-sky-100 dark:border-slate-600 rounded-lg px-2.5 py-1"
-             title="{{ $serverIpInfo['isp'] ?? '' }}{{ isset($serverIpInfo['city']) ? ' · '.$serverIpInfo['city'].', '.$serverIpInfo['country'] : '' }}">
-            <i class="fa-solid fa-tower-broadcast text-sky-400 text-[10px]"></i>
-            <span class="font-mono text-[11px] text-sky-700 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
-            @if(!empty($serverIpInfo['isp']))
-            <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden xl:inline">· {{ Str::limit($serverIpInfo['isp'], 22) }}</span>
+            {{-- IP badge (desktop only) --}}
+            @if(!empty($serverIpInfo['ip']))
+            <div class="hidden xl:flex items-center gap-1.5 bg-sky-50 dark:bg-slate-700/60 border border-sky-100 dark:border-slate-600 rounded-lg px-2.5 py-1"
+                 title="{{ $serverIpInfo['isp'] ?? '' }}{{ isset($serverIpInfo['city']) ? ' · '.$serverIpInfo['city'].', '.$serverIpInfo['country'] : '' }}">
+                <i class="fa-solid fa-tower-broadcast text-sky-400 text-[10px]"></i>
+                <span class="font-mono text-[11px] text-sky-700 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
+                <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden 2xl:inline">· {{ Str::limit($serverIpInfo['isp'] ?? '', 20) }}</span>
+            </div>
             @endif
-        </div>
-        @endif
 
-        <button onclick="toggleDark()" id="theme-btn"
-                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
-                title="Toggle tema">
-            <i id="theme-icon" class="fa-solid fa-moon text-slate-400 text-sm"></i>
-        </button>
-        <div class="hidden md:block text-right">
-            <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium"></p>
-            <p id="live-date"  class="text-[10px] text-gray-400 dark:text-slate-500"></p>
-        </div>
-        @auth
-        <div class="flex items-center gap-2 pl-2 ml-1 border-l border-sky-100 dark:border-slate-700">
-            <span class="text-xs font-medium text-gray-500 dark:text-slate-400 hidden md:block">{{ auth()->user()->name }}</span>
+            {{-- Clock --}}
+            <div class="hidden md:block text-right">
+                <p id="live-clock" class="text-xs font-mono text-gray-500 dark:text-slate-400 font-medium"></p>
+                <p id="live-date"  class="text-[10px] text-gray-400 dark:text-slate-500"></p>
+            </div>
+
+            {{-- Dark mode --}}
+            <button onclick="toggleDark()" id="theme-btn"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors">
+                <i id="theme-icon" class="fa-solid fa-moon text-slate-400 text-sm"></i>
+            </button>
+
+            {{-- Logout --}}
+            @auth
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" title="Keluar"
-                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-400 hover:text-red-500 transition-colors">
+                        class="w-8 h-8 hidden sm:flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-400 hover:text-red-500 transition-colors">
                     <i class="fa-solid fa-right-from-bracket text-sm"></i>
                 </button>
             </form>
+            @endauth
+
+            {{-- Hamburger (mobile) --}}
+            <button @click="mobileOpen = !mobileOpen"
+                    class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-sky-50 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400">
+                <i class="fa-solid" :class="mobileOpen ? 'fa-xmark' : 'fa-bars'"></i>
+            </button>
         </div>
-        @endauth
     </div>
+
+    {{-- Mobile nav drawer --}}
+    <div x-show="mobileOpen" x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-2"
+         class="lg:hidden border-t border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 grid grid-cols-2 gap-1">
+        @foreach($aNav as $n)
+        <a href="{{ route($n['route']) }}" @click="mobileOpen = false"
+           class="flex items-center gap-2 px-3 py-2 text-sm rounded-xl font-medium transition-colors
+               {{ request()->routeIs($n['pattern'])
+                   ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400'
+                   : 'text-gray-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700' }}">
+            <i class="fa-solid {{ $n['icon'] }} w-4 text-center text-sky-400"></i>{{ $n['label'] }}
+        </a>
+        @endforeach
+        @if(!empty($serverIpInfo['ip']))
+        <div class="col-span-2 flex items-center gap-2 px-3 py-2 text-xs text-gray-400 dark:text-slate-500 border-t border-sky-50 dark:border-slate-700 mt-1 pt-2">
+            <i class="fa-solid fa-tower-broadcast text-sky-400"></i>
+            <span class="font-mono text-sky-600 dark:text-sky-400">{{ $serverIpInfo['ip'] }}</span>
+            <span>· {{ $serverIpInfo['isp'] ?? '' }}</span>
+        </div>
+        @endif
+    </div>
+
 </header>
 
 <main class="max-w-6xl mx-auto px-5 py-6">
