@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StatusPage extends Model
 {
-    protected $fillable = ['slug', 'title', 'description', 'is_public', 'monitor_ids', 'sections', 'service_keys'];
+    protected $fillable = ['slug', 'title', 'description', 'is_public', 'monitor_ids', 'sections', 'service_keys', 'custom_domain'];
 
     protected $casts = [
         'is_public'    => 'boolean',

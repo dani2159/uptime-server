@@ -33,6 +33,14 @@
 </div>
 
 <div>
+    <label class="{{ $lbl }}">Custom Domain (opsional)</label>
+    <input type="text" name="custom_domain" value="{{ $val('custom_domain') }}"
+           placeholder="status.namadomain.com" class="{{ $inp }}">
+    <p class="text-xs text-gray-400 mt-1">Arahkan DNS A/CNAME ke server ini. Biarkan kosong jika tidak pakai custom domain.</p>
+    @error('custom_domain')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+</div>
+
+<div>
     <label class="{{ $lbl }} mb-2">Layanan API yang ditampilkan (opsional)</label>
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-sky-50/50 dark:bg-slate-700/30 border border-sky-100 dark:border-slate-700">
         @forelse($services as $key => $checker)

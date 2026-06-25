@@ -22,7 +22,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Halaman publik — tidak butuh login
 Route::get('/status/{slug}', [StatusPageController::class, 'show'])->name('status.public');
+Route::get('/status/{slug}/widget', [StatusPageController::class, 'widget'])->name('status.widget');
 Route::get('/push/{token}', [MonitorController::class, 'receivePush'])->name('monitors.push');
+// Custom domain fallback — cocokkan host ke status_pages.custom_domain
+Route::fallback([StatusPageController::class, 'showByDomain']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

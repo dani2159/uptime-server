@@ -202,6 +202,48 @@
 
 </main>
 
+{{-- ══════════ WIDGET EMBED ══════════ --}}
+@auth
+<div class="max-w-5xl mx-auto px-6 py-6">
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+            <i class="fas fa-code mr-2 text-sky-500"></i>Embed Widget
+        </h3>
+        @php
+        $widgetUrl = route('status.widget', $page->slug);
+        $iframeCode = '<iframe src="' . $widgetUrl . '" width="320" height="200" frameborder="0" style="border-radius:12px;border:1px solid #e5e7eb"></iframe>';
+        @endphp
+        <p class="text-xs text-gray-500 mb-2">Salin kode ini untuk embed widget status di website lain:</p>
+        <div class="relative">
+            <code id="embed-code"
+                  class="block bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-700 break-all select-all">
+                {{ $iframeCode }}
+            </code>
+            <button onclick="copyEmbed()"
+                    class="absolute top-2 right-2 px-2 py-1 text-xs bg-sky-500 text-white rounded hover:bg-sky-600">
+                Salin
+            </button>
+        </div>
+        @if($page->custom_domain)
+        <p class="text-xs text-gray-500 mt-3">
+            Custom domain: <strong>{{ $page->custom_domain }}</strong>
+            — arahkan DNS A/CNAME ke server ini
+        </p>
+        @endif
+    </div>
+</div>
+<script>
+function copyEmbed() {
+    const code = document.getElementById('embed-code').innerText.trim();
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target;
+        btn.textContent = 'Tersalin!';
+        setTimeout(() => btn.textContent = 'Salin', 2000);
+    });
+}
+</script>
+@endauth
+
 {{-- ══════════ FOOTER ══════════ --}}
 <footer class="border-t border-gray-100 bg-white">
     <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">

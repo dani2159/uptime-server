@@ -35,6 +35,7 @@ class StatusPageController extends Controller
             'sections_json'  => 'required|string',
             'service_keys'   => 'array',
             'service_keys.*' => 'string',
+            'custom_domain'  => 'nullable|string|max:255|unique:status_pages,custom_domain',
         ]);
 
         $sections = json_decode($request->sections_json, true) ?? [];
@@ -43,13 +44,14 @@ class StatusPageController extends Controller
             ->unique()->values()->toArray();
 
         StatusPage::create([
-            'slug'         => $request->slug,
-            'title'        => $request->title,
-            'description'  => $request->description,
-            'is_public'    => $request->boolean('is_public', true),
-            'sections'     => $sections,
-            'monitor_ids'  => $allIds,
-            'service_keys' => $request->input('service_keys', []),
+            'slug'          => $request->slug,
+            'title'         => $request->title,
+            'description'   => $request->description,
+            'is_public'     => $request->boolean('is_public', true),
+            'sections'      => $sections,
+            'monitor_ids'   => $allIds,
+            'service_keys'  => $request->input('service_keys', []),
+            'custom_domain' => $request->input('custom_domain') ?: null,
         ]);
 
         return redirect()->route('status-pages.index')->with('success', 'Status page berhasil dibuat.');
@@ -72,6 +74,7 @@ class StatusPageController extends Controller
             'sections_json'  => 'required|string',
             'service_keys'   => 'array',
             'service_keys.*' => 'string',
+            'custom_domain'  => 'nullable|string|max:255|unique:status_pages,custom_domain,' . $statusPage->id,
         ]);
 
         $sections = json_decode($request->sections_json, true) ?? [];
@@ -80,13 +83,14 @@ class StatusPageController extends Controller
             ->unique()->values()->toArray();
 
         $statusPage->update([
-            'slug'         => $request->slug,
-            'title'        => $request->title,
-            'description'  => $request->description,
-            'is_public'    => $request->boolean('is_public', true),
-            'sections'     => $sections,
-            'monitor_ids'  => $allIds,
-            'service_keys' => $request->input('service_keys', []),
+            'slug'          => $request->slug,
+            'title'         => $request->title,
+            'description'   => $request->description,
+            'is_public'     => $request->boolean('is_public', true),
+            'sections'      => $sections,
+            'monitor_ids'   => $allIds,
+            'service_keys'  => $request->input('service_keys', []),
+            'custom_domain' => $request->input('custom_domain') ?: null,
         ]);
 
         return redirect()->route('status-pages.index')->with('success', 'Status page berhasil diperbarui.');
@@ -161,5 +165,28 @@ class StatusPageController extends Controller
         }
 
         return view('status-pages.show', compact('page', 'sectionData', 'overallStatus', 'apiServices'));
+    }
+
+    public function showByDomain(\Illuminate\Http\Request $request)
+    {
+        $host = $request->getHost();
+        $page = StatusPage::where('custom_domain', $host)->where('is_public', true)->first();
+        if (!$page) {
+            abort(404);
+        }
+        return $this->show($page->slug);
+    }
+
+    public function widget(string $slug)
+    {
+        $page     = StatusPage::where('slug', $slug)->where('is_public', true)->firstOrFail();
+        $monitors = Monitor::whereIn('id', $page->allMonitorIds())->get(['id', 'name', 'last_status', 'url']);
+        $overall  = ($monitors->isEmpty() || $monitors->every(fn($m) => $m->last_status === 'up'))
+            ? 'operational'
+            : 'degraded';
+        return response()
+            ->view('status-pages.widget', compact('page', 'monitors', 'overall'))
+            ->header('X-Frame-Options', 'ALLOWALL')
+            ->header('Content-Security-Policy', 'frame-ancestors *');
     }
 }
