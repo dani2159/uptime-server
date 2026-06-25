@@ -7,6 +7,7 @@ use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
 use App\Models\NotificationChannel;
 use App\Models\Tag;
+use App\Services\AuditService;
 use App\Services\DnsResolver;
 use App\Services\NotificationService;
 use App\Services\SslChecker;
@@ -61,6 +62,7 @@ class MonitorController extends Controller
 
         $monitor = Monitor::create($data);
         $monitor->tags()->sync($request->input('tags', []));
+        AuditService::log('monitor.created', "Monitor \"{$monitor->name}\" dibuat", $monitor);
         $this->resolver->resolve($monitor);
 
         if ($ssl = $this->sslChecker->check($monitor)) {
@@ -128,6 +130,7 @@ class MonitorController extends Controller
 
         $monitor->update($data);
         $monitor->tags()->sync($request->input('tags', []));
+        AuditService::log('monitor.updated', "Monitor \"{$monitor->name}\" diperbarui", $monitor);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -142,6 +145,7 @@ class MonitorController extends Controller
 
     public function destroy(Request $request, Monitor $monitor)
     {
+        AuditService::log('monitor.deleted', "Monitor \"{$monitor->name}\" dihapus");
         $monitor->delete();
 
         if ($request->expectsJson()) {
@@ -162,6 +166,8 @@ class MonitorController extends Controller
     public function toggle(Monitor $monitor)
     {
         $monitor->update(['is_active' => !$monitor->is_active]);
+        $status = $monitor->is_active ? 'diaktifkan' : 'dijeda';
+        AuditService::log('monitor.toggled', "Monitor \"{$monitor->name}\" {$status}", $monitor);
         return back()->with('success', $monitor->is_active ? 'Monitor diaktifkan.' : 'Monitor dijeda.');
     }
 
@@ -238,6 +244,7 @@ class MonitorController extends Controller
 
         $msg = "Cek selesai: " . strtoupper($currentStatus)
             . ($result['response_time'] ? " ({$result['response_time']}ms)" : '');
+        AuditService::log('monitor.checked', "Cek manual \"{$monitor->name}\": {$msg}", $monitor);
 
         if ($request->expectsJson()) {
             return response()->json([

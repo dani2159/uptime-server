@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Incident;
 use App\Models\Monitor;
+use App\Services\AuditService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -61,7 +62,8 @@ class IncidentController extends Controller
             ? Carbon::parse($data['started_at'])->diffInSeconds(Carbon::parse($data['resolved_at']))
             : null;
 
-        Incident::create($data);
+        $incident = Incident::create($data);
+        AuditService::log('incident.created', "Insiden \"{$incident->title}\" dibuat");
 
         return redirect()->route('incidents.index')->with('success', 'Insiden berhasil ditambahkan.');
     }
@@ -96,6 +98,8 @@ class IncidentController extends Controller
             : null;
 
         $incident->update($data);
+        $statusStr = $data['status'] === 'closed' ? 'ditutup' : 'diperbarui';
+        AuditService::log('incident.updated', "Insiden \"{$incident->title}\" {$statusStr}");
 
         return redirect()->route('incidents.index')->with('success', 'Insiden berhasil diperbarui.');
     }

@@ -6,6 +6,7 @@ use App\Jobs\RecheckMonitorJob;
 use App\Models\Incident;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitor;
+use App\Services\AuditService;
 use App\Services\DnsResolver;
 use App\Services\NotificationService;
 use App\Services\UptimeChecker;
@@ -119,6 +120,7 @@ class CheckMonitors extends Command
             'started_at' => $monitor->last_down_at ?? now(),
             'status'     => 'open',
         ]);
+        AuditService::log('monitor.down', "Monitor \"{$monitor->name}\" DOWN — insiden dibuka", $monitor, null);
     }
 
     private function closeIncident(Monitor $monitor): void
@@ -136,5 +138,6 @@ class CheckMonitors extends Command
             'status'            => 'closed',
             'duration_seconds'  => $incident->started_at->diffInSeconds($resolvedAt),
         ]);
+        AuditService::log('monitor.recovered', "Monitor \"{$monitor->name}\" UP kembali — insiden ditutup", $monitor, null);
     }
 }

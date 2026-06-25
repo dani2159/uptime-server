@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\BpjsDashboardController;
@@ -47,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/sla-report', [SlaReportController::class, 'index'])->name('sla-report.index');
 
     Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
