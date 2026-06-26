@@ -325,6 +325,86 @@ Swal.fire({ icon: 'success', title: '{{ addslashes(session('success')) }}', toas
 @if(session('error'))
 Swal.fire({ icon: 'error', title: '{{ addslashes(session('error')) }}', toast: true, position: 'top-end', timer: 4000, showConfirmButton: false });
 @endif
+
+// ======= SSE Live Dashboard Update =======
+(function() {
+    const faviconEl = document.querySelector('link[rel="icon"]');
+    const defaultFavicon = faviconEl ? faviconEl.href : '';
+    let alertSound = null;
+    let prevStatuses = {};
+    let soundEnabled = localStorage.getItem('wt_sound') !== 'false';
+
+    // Tiny red dot favicon via canvas
+    function setFaviconRed() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32; canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        const img = new Image(); img.src = defaultFavicon;
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, 32, 32);
+            ctx.beginPath(); ctx.arc(26, 6, 7, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444'; ctx.fill();
+            if (faviconEl) faviconEl.href = canvas.toDataURL();
+        };
+        img.onerror = function() {
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(0, 0, 32, 32);
+            if (faviconEl) faviconEl.href = canvas.toDataURL();
+        };
+    }
+    function setFaviconNormal() { if (faviconEl) faviconEl.href = defaultFavicon; }
+
+    function playAlertSound() {
+        if (!soundEnabled) return;
+        try {
+            const ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx2.createOscillator();
+            const gain = ctx2.createGain();
+            osc.connect(gain); gain.connect(ctx2.destination);
+            osc.frequency.value = 880; gain.gain.value = 0.3;
+            osc.start(); osc.stop(ctx2.currentTime + 0.15);
+        } catch(e) {}
+    }
+
+    // Expose sound toggle globally
+    window.wtToggleSound = function() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('wt_sound', soundEnabled ? 'true' : 'false');
+        return soundEnabled;
+    };
+
+    // Connect SSE
+    const es = new EventSource('{{ route('monitors.sse') }}');
+    es.onmessage = function(e) {
+        try {
+            const data = JSON.parse(e.data);
+            let anyDown = false;
+            Object.entries(data).forEach(([id, mon]) => {
+                const prev = prevStatuses[id];
+                // Update DOM elements with data-monitor-id
+                document.querySelectorAll(`[data-monitor-id="${id}"]`).forEach(el => {
+                    if (el.dataset.field === 'status') {
+                        el.textContent = mon.status.toUpperCase();
+                        el.className = el.className.replace(/text-(red|emerald|amber|slate)-\d+/g, '');
+                        el.classList.add(mon.status === 'up' ? 'text-emerald-400' : mon.status === 'down' ? 'text-red-400' : 'text-amber-400');
+                    }
+                    if (el.dataset.field === 'rt') {
+                        el.textContent = mon.rt ? mon.rt + 'ms' : '-';
+                    }
+                    if (el.dataset.field === 'score') {
+                        el.textContent = mon.score ?? '-';
+                    }
+                });
+                if (mon.status === 'down') anyDown = true;
+                if (prev && prev !== mon.status) {
+                    if (mon.status === 'down') playAlertSound();
+                }
+                prevStatuses[id] = mon.status;
+            });
+            anyDown ? setFaviconRed() : setFaviconNormal();
+        } catch(e) {}
+    };
+    es.onerror = function() { es.close(); };
+})();
 </script>
 </body>
 </html>
