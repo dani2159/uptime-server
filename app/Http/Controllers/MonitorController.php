@@ -36,14 +36,13 @@ class MonitorController extends Controller
         return view('monitors.create', compact('channels', 'tags'));
     }
 
-    public function store(Request $request)
+    private function monitorValidationRules(Request $request): array
     {
-        $urlRule = in_array($request->type, ['http', 'keyword']) ? ['required', 'string', 'max:500', 'regex:/^https?:\/\/.+/'] : 'required|string|max:500';
-
-        $data = $request->validate([
+        $urlRule = in_array($request->type, ['http', 'keyword']) ? ['required', 'string', 'max:500', 'regex:/^https?:\/\/.+/'] : 'nullable|string|max:500';
+        return [
             'name'                  => 'required|string|max:100',
             'url'                   => $urlRule,
-            'type'                  => 'required|in:http,ping,keyword,tcp,dns,push',
+            'type'                  => 'required|in:http,ping,keyword,tcp,dns,push,cron,database,docker,whois',
             'check_interval'        => 'required|integer|min:1|max:1440',
             'timeout'               => 'required|integer|min:1|max:60',
             'retry_count'           => 'required|integer|min:1|max:10',
@@ -54,11 +53,44 @@ class MonitorController extends Controller
             'push_token'            => 'nullable|string|max:100',
             'dns_resolve_type'      => 'nullable|in:A,AAAA,CNAME,MX',
             'dns_expected_value'    => 'nullable|string|max:255',
-            'notification_channels'  => 'nullable|array',
-            'tags'                   => 'nullable|array',
-            'tags.*'                 => 'integer|exists:tags,id',
-            'response_time_warning'  => 'nullable|integer|min:100|max:60000',
-        ]);
+            'notification_channels' => 'nullable|array',
+            'tags'                  => 'nullable|array',
+            'tags.*'                => 'integer|exists:tags,id',
+            'response_time_warning' => 'nullable|integer|min:100|max:60000',
+            // v2
+            'notes'                 => 'nullable|string|max:1000',
+            'runbook_url'           => 'nullable|url|max:500',
+            'environment'           => 'nullable|in:production,staging,development,testing',
+            'http_method'           => 'nullable|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
+            'request_body'          => 'nullable|string|max:5000',
+            'auth_type'             => 'nullable|in:basic,bearer',
+            'auth_username'         => 'nullable|string|max:255',
+            'auth_password'         => 'nullable|string|max:255',
+            'custom_headers'        => 'nullable|string|max:2000',
+            'custom_user_agent'     => 'nullable|string|max:255',
+            'proxy_url'             => 'nullable|string|max:255',
+            'accepted_status_codes' => 'nullable|string|max:100',
+            'ignore_tls_error'      => 'nullable|boolean',
+            'follow_redirects'      => 'nullable|boolean',
+            'max_redirects'         => 'nullable|integer|min:0|max:20',
+            'min_response_size'     => 'nullable|integer|min:0',
+            'max_response_size'     => 'nullable|integer|min:0',
+            'body_assertion_path'   => 'nullable|string|max:200',
+            'body_assertion_value'  => 'nullable|string|max:500',
+            'body_assertion_op'     => 'nullable|in:equals,contains,not_contains',
+            'suppress_pattern'      => 'nullable|string|max:500',
+            'flap_detection'        => 'nullable|boolean',
+            'flap_window_minutes'   => 'nullable|integer|min:1|max:60',
+            'flap_count_threshold'  => 'nullable|integer|min:2|max:20',
+            'latency_trend_alert'   => 'nullable|boolean',
+            'heartbeat_interval'    => 'nullable|integer|min:1',
+            'domain_expiry_alert_days' => 'nullable|integer|min:1',
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate($this->monitorValidationRules($request));
 
         $monitor = Monitor::create($data);
         $monitor->tags()->sync($request->input('tags', []));
@@ -105,28 +137,9 @@ class MonitorController extends Controller
 
     public function update(Request $request, Monitor $monitor)
     {
-        $urlRule = in_array($request->type, ['http', 'keyword']) ? ['required', 'string', 'max:500', 'regex:/^https?:\/\/.+/'] : 'required|string|max:500';
-
-        $data = $request->validate([
-            'name'                  => 'required|string|max:100',
-            'url'                   => $urlRule,
-            'type'                  => 'required|in:http,ping,keyword,tcp,dns,push',
-            'check_interval'        => 'required|integer|min:1|max:1440',
-            'timeout'               => 'required|integer|min:1|max:60',
-            'retry_count'           => 'required|integer|min:1|max:10',
-            'expected_status'       => 'nullable|string|max:10',
-            'keyword'               => 'nullable|string|max:200',
-            'tcp_host'              => 'nullable|string|max:255',
-            'tcp_port'              => 'nullable|integer|min:1|max:65535',
-            'push_token'            => 'nullable|string|max:100',
-            'dns_resolve_type'      => 'nullable|in:A,AAAA,CNAME,MX',
-            'dns_expected_value'    => 'nullable|string|max:255',
-            'is_active'              => 'boolean',
-            'notification_channels'  => 'nullable|array',
-            'tags'                   => 'nullable|array',
-            'tags.*'                 => 'integer|exists:tags,id',
-            'response_time_warning'  => 'nullable|integer|min:100|max:60000',
-        ]);
+        $rules = $this->monitorValidationRules($request);
+        $rules['is_active'] = 'boolean';
+        $data = $request->validate($rules);
 
         $monitor->update($data);
         $monitor->tags()->sync($request->input('tags', []));

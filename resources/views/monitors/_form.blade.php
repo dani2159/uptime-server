@@ -16,12 +16,26 @@
         <div>
             <label class="{{ $lbl }}">Tipe Monitor</label>
             <select name="type" x-model="type" class="{{ $inp }}">
-                <option value="http">HTTP/HTTPS</option>
-                <option value="keyword">Keyword</option>
-                <option value="ping">Ping (ICMP)</option>
-                <option value="tcp">TCP Port</option>
-                <option value="dns">DNS</option>
-                <option value="push">Push Heartbeat</option>
+                <optgroup label="Web">
+                    <option value="http">HTTP/HTTPS</option>
+                    <option value="keyword">Keyword</option>
+                </optgroup>
+                <optgroup label="Infrastruktur">
+                    <option value="ping">Ping (ICMP)</option>
+                    <option value="tcp">TCP Port</option>
+                    <option value="dns">DNS</option>
+                    <option value="docker">Docker Container</option>
+                </optgroup>
+                <optgroup label="Database">
+                    <option value="database">Database (MySQL/PgSQL/Redis)</option>
+                </optgroup>
+                <optgroup label="Domain">
+                    <option value="whois">WHOIS / Domain Expiry</option>
+                </optgroup>
+                <optgroup label="Heartbeat">
+                    <option value="push">Push Heartbeat</option>
+                    <option value="cron">Cron Job Monitor</option>
+                </optgroup>
             </select>
         </div>
         <div>
@@ -151,14 +165,203 @@
     <label class="{{ $lbl }}">Channel Notifikasi</label>
     <div class="space-y-2 mt-1">
         @foreach($channels as $channel)
-        <label class="flex items-center gap-2.5 text-sm cursor-pointer hover:bg-sky-50 rounded-lg px-2 py-1.5 transition-colors">
+        <label class="flex items-center gap-2.5 text-sm cursor-pointer hover:bg-sky-50 dark:hover:bg-slate-700 rounded-lg px-2 py-1.5 transition-colors">
             <input type="checkbox" name="notification_channels[]" value="{{ $channel->id }}"
                    {{ in_array($channel->id, $val('notification_channels', []) ?: []) ? 'checked' : '' }}
                    class="rounded border-sky-300 text-sky-500">
-            <span class="font-medium text-gray-700">{{ $channel->name }}</span>
-            <span class="text-xs text-gray-400 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">{{ $channel->type }}</span>
+            <span class="font-medium text-gray-700 dark:text-slate-200">{{ $channel->name }}</span>
+            <span class="text-xs text-gray-400 bg-sky-50 dark:bg-slate-700 border border-sky-100 dark:border-slate-600 px-2 py-0.5 rounded-full">{{ $channel->type }}</span>
         </label>
         @endforeach
     </div>
 </div>
 @endif
+
+{{-- ====== ADVANCED v2 Fields ====== --}}
+<div x-data="{ advOpen: false }">
+    <button type="button" @click="advOpen = !advOpen"
+        class="flex items-center gap-2 text-sm text-sky-400 hover:text-sky-300 mt-2">
+        <i class="fa fa-chevron-right transition-transform" :class="advOpen ? 'rotate-90' : ''"></i>
+        <span x-text="advOpen ? 'Sembunyikan pengaturan lanjutan' : 'Tampilkan pengaturan lanjutan (HTTP Auth, Body Assertion, Flap, dll)'"></span>
+    </button>
+
+    <div x-show="advOpen" x-transition class="mt-4 space-y-4">
+
+        {{-- Notes & Runbook --}}
+        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Catatan & Runbook</h4>
+            <div>
+                <label class="{{ $lbl }}">Notes</label>
+                <textarea name="notes" rows="2" class="{{ $inp }} font-mono text-xs"
+                    placeholder="Catatan internal tentang monitor ini...">{{ $val('notes') }}</textarea>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Runbook URL</label>
+                <input type="url" name="runbook_url" value="{{ $val('runbook_url') }}" class="{{ $inp }}"
+                    placeholder="https://wiki.company.com/runbook/service-x">
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Environment</label>
+                <select name="environment" class="{{ $inp }}">
+                    @foreach(['production','staging','development','testing'] as $env)
+                    <option value="{{ $env }}" {{ $val('environment','production') === $env ? 'selected' : '' }}>{{ ucfirst($env) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- HTTP Advanced --}}
+        <div x-show="type === 'http' || type === 'keyword'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">HTTP Lanjutan</h4>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="{{ $lbl }}">HTTP Method</label>
+                    <select name="http_method" class="{{ $inp }}">
+                        @foreach(['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'] as $m)
+                        <option value="{{ $m }}" {{ $val('http_method','GET') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Accepted Status Codes</label>
+                    <input type="text" name="accepted_status_codes" value="{{ $val('accepted_status_codes','200') }}" class="{{ $inp }}"
+                        placeholder="200,201,301">
+                </div>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Request Body (JSON / Form)</label>
+                <textarea name="request_body" rows="2" class="{{ $inp }} font-mono text-xs"
+                    placeholder='{"key": "value"}'>{{ $val('request_body') }}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="{{ $lbl }}">Auth Type</label>
+                    <select name="auth_type" class="{{ $inp }}">
+                        <option value="">Tidak ada</option>
+                        <option value="basic" {{ $val('auth_type') === 'basic' ? 'selected' : '' }}>Basic Auth</option>
+                        <option value="bearer" {{ $val('auth_type') === 'bearer' ? 'selected' : '' }}>Bearer Token</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Username / Token</label>
+                    <input type="text" name="auth_username" value="{{ $val('auth_username') }}" class="{{ $inp }}"
+                        placeholder="username atau bearer token">
+                </div>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Password (Basic Auth)</label>
+                <input type="password" name="auth_password" value="{{ $val('auth_password') }}" class="{{ $inp }}">
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Custom Headers (JSON)</label>
+                <textarea name="custom_headers" rows="2" class="{{ $inp }} font-mono text-xs"
+                    placeholder='{"X-Api-Key": "abc123", "Accept": "application/json"}'>{{ $val('custom_headers') }}</textarea>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Custom User-Agent</label>
+                <input type="text" name="custom_user_agent" value="{{ $val('custom_user_agent') }}" class="{{ $inp }}"
+                    placeholder="WatchTower/2.0 (+https://watchtower.app)">
+            </div>
+            <div>
+                <label class="{{ $lbl }}">HTTP Proxy URL</label>
+                <input type="text" name="proxy_url" value="{{ $val('proxy_url') }}" class="{{ $inp }}"
+                    placeholder="http://proxy:3128 atau socks5://proxy:1080">
+            </div>
+            <div class="flex gap-4 text-sm">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="ignore_tls_error" value="1" {{ $val('ignore_tls_error') ? 'checked' : '' }} class="rounded">
+                    <span class="text-slate-300">Abaikan error TLS/SSL</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="follow_redirects" value="1" {{ $val('follow_redirects',true) ? 'checked' : '' }} class="rounded">
+                    <span class="text-slate-300">Ikuti redirect</span>
+                </label>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="{{ $lbl }}">Max Redirect</label>
+                    <input type="number" name="max_redirects" value="{{ $val('max_redirects',5) }}" min="0" max="20" class="{{ $inp }}">
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Min Response Size (byte)</label>
+                    <input type="number" name="min_response_size" value="{{ $val('min_response_size') }}" min="0" class="{{ $inp }}">
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Max Response Size (byte)</label>
+                    <input type="number" name="max_response_size" value="{{ $val('max_response_size') }}" min="0" class="{{ $inp }}">
+                </div>
+            </div>
+        </div>
+
+        {{-- Body Assertion --}}
+        <div x-show="type === 'http' || type === 'keyword'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Body Assertion (JSON Path)</h4>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="{{ $lbl }}">JSON Path</label>
+                    <input type="text" name="body_assertion_path" value="{{ $val('body_assertion_path') }}" class="{{ $inp }}"
+                        placeholder="$.status">
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Operator</label>
+                    <select name="body_assertion_op" class="{{ $inp }}">
+                        @foreach(['equals','contains','not_contains'] as $op)
+                        <option value="{{ $op }}" {{ $val('body_assertion_op') === $op ? 'selected' : '' }}>{{ $op }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Nilai</label>
+                    <input type="text" name="body_assertion_value" value="{{ $val('body_assertion_value') }}" class="{{ $inp }}"
+                        placeholder="ok">
+                </div>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Suppress Pattern (Regex — abaikan DOWN jika cocok)</label>
+                <input type="text" name="suppress_pattern" value="{{ $val('suppress_pattern') }}" class="{{ $inp }}"
+                    placeholder="maintenance|scheduled">
+            </div>
+        </div>
+
+        {{-- Cron/Heartbeat --}}
+        <div x-show="type === 'cron' || type === 'push'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Heartbeat / Cron</h4>
+            <div>
+                <label class="{{ $lbl }}">Expected Interval (menit)</label>
+                <input type="number" name="heartbeat_interval" value="{{ $val('heartbeat_interval',60) }}" min="1" class="{{ $inp }}">
+                <p class="text-xs text-slate-500 mt-1">Monitor DOWN jika tidak menerima ping dalam N menit ini</p>
+            </div>
+        </div>
+
+        {{-- Flap Detection --}}
+        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Flap Detection</h4>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="flap_detection" value="1" {{ $val('flap_detection') ? 'checked' : '' }} class="rounded">
+                <span class="text-slate-300 text-sm">Aktifkan flap detection (tahan notif jika UP-DOWN bergantian)</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="{{ $lbl }}">Window (menit)</label>
+                    <input type="number" name="flap_window_minutes" value="{{ $val('flap_window_minutes',5) }}" min="1" max="60" class="{{ $inp }}">
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">Threshold (count)</label>
+                    <input type="number" name="flap_count_threshold" value="{{ $val('flap_count_threshold',3) }}" min="2" max="20" class="{{ $inp }}">
+                </div>
+            </div>
+        </div>
+
+        {{-- Latency Trend --}}
+        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="latency_trend_alert" value="1" {{ $val('latency_trend_alert') ? 'checked' : '' }} class="rounded">
+                <div>
+                    <span class="text-slate-300 text-sm font-medium">Latency Trend Alert</span>
+                    <p class="text-xs text-slate-500">Kirim peringatan jika response time naik konsisten 5 cek berturut-turut</p>
+                </div>
+            </label>
+        </div>
+
+    </div>
+</div>
