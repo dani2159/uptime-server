@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', 'Template Notifikasi')
 
 @section('content')
@@ -145,19 +145,19 @@
                 <div class="flex items-center gap-3">
                     <input type="hidden" name="report_enabled" value="0">
                     <input type="checkbox" name="report_enabled" value="1" id="rep_enabled"
-                           @checked(AppSetting::get('report_enabled', '0'))
+                           @checked(\App\Models\AppSetting::get('report_enabled', '0'))
                            class="w-4 h-4 text-sky-500 rounded">
                     <label for="rep_enabled" class="text-sm dark:text-slate-300 font-medium">Aktifkan Laporan Otomatis</label>
                 </div>
                 <div class="flex items-center gap-3">
                     <input type="hidden" name="report_daily" value="0">
                     <input type="checkbox" name="report_daily" value="1" id="rep_daily"
-                           @checked(AppSetting::get('report_daily', '0'))
+                           @checked(\App\Models\AppSetting::get('report_daily', '0'))
                            class="w-4 h-4 text-sky-500 rounded">
                     <label for="rep_daily" class="text-sm dark:text-slate-300">Harian</label>
                     <input type="hidden" name="report_weekly" value="0">
                     <input type="checkbox" name="report_weekly" value="1" id="rep_weekly"
-                           @checked(AppSetting::get('report_weekly', '0'))
+                           @checked(\App\Models\AppSetting::get('report_weekly', '0'))
                            class="w-4 h-4 text-sky-500 rounded ml-4">
                     <label for="rep_weekly" class="text-sm dark:text-slate-300">Mingguan (Senin)</label>
                 </div>
@@ -166,12 +166,12 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jam Kirim</label>
                     <input type="time" name="report_time"
-                           value="{{ AppSetting::get('report_time', '07:00') }}"
+                           value="{{ \App\Models\AppSetting::get('report_time', '07:00') }}"
                            class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Channel Penerima</label>
-                    @php $repChannels = json_decode(AppSetting::get('report_channel_ids', '[]'), true); @endphp
+                    @php $repChannels = json_decode(\App\Models\AppSetting::get('report_channel_ids', '[]'), true); @endphp
                     <div class="space-y-1 max-h-32 overflow-y-auto">
                         @foreach(\App\Models\NotificationChannel::where('is_active', true)->orderBy('name')->get() as $ch)
                         <label class="flex items-center gap-2 text-sm dark:text-slate-300">
