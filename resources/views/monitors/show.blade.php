@@ -236,6 +236,58 @@
     <div class="px-5 py-3 border-t border-sky-50 dark:border-slate-700">{{ $logs->links() }}</div>
     @endif
 </div>
+{{-- Heatmap Availability Calendar --}}
+@php $calendar = $monitor->availabilityCalendar(90); @endphp
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-sky-100 dark:border-slate-700 p-5 mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-slate-200">
+            <i class="fa fa-calendar-alt text-sky-400 mr-1"></i> Availability Calendar (90 hari)
+        </h3>
+        @if($monitor->health_score !== null)
+        <span class="px-3 py-1 rounded-full text-xs font-bold {{ $monitor->health_score_badge }}">
+            Score: {{ $monitor->health_score }}/100
+        </span>
+        @endif
+    </div>
+    <div class="flex flex-wrap gap-1">
+        @foreach($calendar as $day)
+        @php
+            $pct = $day['pct'];
+            $color = $pct === null ? 'bg-slate-700' : ($pct >= 99 ? 'bg-emerald-500' : ($pct >= 95 ? 'bg-emerald-700' : ($pct >= 80 ? 'bg-amber-600' : 'bg-red-600')));
+            $opacity = $pct === null ? 'opacity-20' : 'opacity-80 hover:opacity-100';
+        @endphp
+        <div class="w-4 h-4 rounded-sm {{ $color }} {{ $opacity }} cursor-default transition-opacity"
+             title="{{ $day['date'] }}: {{ $pct !== null ? $pct.'%' : 'no data' }}"></div>
+        @endforeach
+    </div>
+    <div class="flex gap-4 mt-2 text-xs text-slate-500">
+        <span><span class="inline-block w-3 h-3 rounded-sm bg-emerald-500 mr-1"></span>≥99%</span>
+        <span><span class="inline-block w-3 h-3 rounded-sm bg-amber-600 mr-1"></span>80-95%</span>
+        <span><span class="inline-block w-3 h-3 rounded-sm bg-red-600 mr-1"></span>&lt;80%</span>
+        <span><span class="inline-block w-3 h-3 rounded-sm bg-slate-700 mr-1"></span>No data</span>
+    </div>
+</div>
+
+{{-- Notes & Runbook --}}
+@if($monitor->notes || $monitor->runbook_url)
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-sky-100 dark:border-slate-700 p-5 mt-4">
+    @if($monitor->notes)
+    <div class="mb-3">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Catatan</p>
+        <p class="text-sm text-slate-300 whitespace-pre-wrap">{{ $monitor->notes }}</p>
+    </div>
+    @endif
+    @if($monitor->runbook_url)
+    <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Runbook</p>
+        <a href="{{ $monitor->runbook_url }}" target="_blank" class="text-sky-400 hover:text-sky-300 text-sm">
+            <i class="fa fa-book-open mr-1"></i>{{ $monitor->runbook_url }}
+        </a>
+    </div>
+    @endif
+</div>
+@endif
+
 @endsection
 
 @push('scripts')

@@ -126,4 +126,40 @@ class Monitor extends Model
     {
         return $this->dependencies()->where('last_status', 'down')->exists();
     }
+
+    public function totalDowntimeMinutes(): int
+    {
+        return (int) $this->logs()
+            ->where('status', 'down')
+            ->sum(\DB::raw('COALESCE(response_time, 0)')) / 60000;
+    }
+
+    public function availabilityCalendar(int $days = 90): array
+    {
+        $from  = now()->subDays($days - 1)->startOfDay();
+        $rows  = $this->logs()
+            ->where('checked_at', '>=', $from)
+            ->selectRaw('DATE(checked_at) as day, SUM(status = "up") as up_count, COUNT(*) as total')
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->keyBy('day');
+
+        $calendar = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d   = now()->subDays($i)->format('Y-m-d');
+            $row = $rows->get($d);
+            $pct = $row && $row->total > 0 ? round($row->up_count / $row->total * 100) : null;
+            $calendar[] = ['date' => $d, 'pct' => $pct, 'total' => $row?->total ?? 0];
+        }
+        return $calendar;
+    }
+
+    public function getHealthScoreBadgeAttribute(): string
+    {
+        $s = $this->health_score ?? 0;
+        if ($s >= 90) return 'bg-emerald-900/50 text-emerald-300';
+        if ($s >= 70) return 'bg-amber-900/50 text-amber-300';
+        return 'bg-red-900/50 text-red-300';
+    }
 }

@@ -231,7 +231,29 @@
         </p>
         @endif
     </div>
+
+    {{-- QR Code --}}
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 mt-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+            <i class="fas fa-qrcode mr-2 text-sky-500"></i>QR Code Status Page
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">Scan QR ini untuk buka status page dari HP atau tempel di ruang server.</p>
+        <div id="qrcode-container" class="bg-white p-3 rounded-lg inline-block border border-gray-200"></div>
+        <p class="text-xs text-gray-400 mt-2">{{ route('status.public', $page->slug) }}</p>
+    </div>
+
+    {{-- Uptime Badge --}}
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 mt-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+            <i class="fas fa-shield-alt mr-2 text-sky-500"></i>Uptime Badge
+        </h3>
+        <img src="{{ route('status.badge', $page->slug) }}" alt="badge" class="mb-2">
+        <code class="block bg-white border border-gray-200 rounded text-xs font-mono px-3 py-2 select-all">
+            ![{{ $page->title }}]({{ route('status.badge', $page->slug) }})
+        </code>
+    </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
 function copyEmbed() {
     const code = document.getElementById('embed-code').innerText.trim();
@@ -241,6 +263,10 @@ function copyEmbed() {
         setTimeout(() => btn.textContent = 'Salin', 2000);
     });
 }
+new QRCode(document.getElementById('qrcode-container'), {
+    text: '{{ route('status.public', $page->slug) }}',
+    width: 128, height: 128, colorDark: '#0f172a', colorLight: '#ffffff',
+});
 </script>
 @endauth
 
