@@ -29,12 +29,7 @@
 
 @push('scripts')
 <script>
-const monitors = @json($monitors->map(fn($m) => [
-    'id'   => $m->id,
-    'name' => $m->name,
-    'status' => $m->last_status,
-    'deps' => $m->dependencies->pluck('id')->toArray(),
-]));
+const monitors = @json($topologyData);
 
 const canvas = document.getElementById('topology-canvas');
 const ctx    = canvas.getContext('2d');

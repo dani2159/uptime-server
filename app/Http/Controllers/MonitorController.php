@@ -199,7 +199,13 @@ class MonitorController extends Controller
     public function topology()
     {
         $monitors = Monitor::with('dependencies')->where('is_active', true)->get();
-        return view('monitors.topology', compact('monitors'));
+        $topologyData = $monitors->map(fn($m) => [
+            'id'     => $m->id,
+            'name'   => $m->name,
+            'status' => $m->last_status,
+            'deps'   => $m->dependencies->pluck('id')->toArray(),
+        ])->values()->all();
+        return view('monitors.topology', compact('monitors', 'topologyData'));
     }
 
     public function simulate(Request $request, Monitor $monitor)
