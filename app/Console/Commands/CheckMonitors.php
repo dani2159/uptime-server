@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\EscalateIncidentJob;
 use App\Jobs\RecheckMonitorJob;
+use App\Models\BusinessHour;
 use App\Models\EscalationRule;
 use App\Models\Incident;
 use App\Models\MaintenanceWindow;
@@ -32,10 +33,10 @@ class CheckMonitors extends Command
 
     public function handle(): int
     {
-        $query = Monitor::where('is_active', true);
+        $query = Monitor::where('is_active', true)->whereNotIn('type', ['push', 'cron']);
 
         if ($id = $this->option('id')) {
-            $query->where('id', $id);
+            $query = Monitor::where('id', $id);
         } else {
             $query->where(function ($q) {
                 $q->whereNull('last_checked_at')
@@ -44,46 +45,41 @@ class CheckMonitors extends Command
         }
 
         $monitors = $query->get();
-
-        if ($monitors->isEmpty()) {
-            $this->info('No monitors due for checking.');
-            return self::SUCCESS;
-        }
-
+        if ($monitors->isEmpty()) { $this->info('No monitors due.'); return self::SUCCESS; }
         $this->info("Checking {$monitors->count()} monitor(s)...");
 
         foreach ($monitors as $monitor) {
             $previousStatus = $monitor->last_status;
-
             $result = $this->checker->check($monitor);
             $this->checker->saveResult($monitor, $result);
             $this->resolver->resolve($monitor);
-
             $monitor->refresh();
             $this->handleSlowAlert($monitor, $result);
+            $this->handleLatencyTrend($monitor, $result);
             $this->handleRetryAndNotify($monitor, $previousStatus, $result['status']);
-
-            $icon = $result['status'] === 'up' ? '✓' : '✗';
-            $this->line("  {$icon} [{$monitor->name}] {$result['status']} — {$result['response_time']}ms");
+            $this->line("  [" . ($result['status'] === 'up' ? 'OK' : 'DN') . "] {$monitor->name} — {$result['response_time']}ms");
         }
 
-        // Kirim notifikasi batch — 1 pesan per channel meski banyak monitor berubah status
         $this->notifier->sendBatchDown($this->batchDown);
         $this->notifier->sendBatchUp($this->batchUp);
-
+        $this->checkCorrelatedIncident();
         return self::SUCCESS;
     }
 
     private function handleSlowAlert(Monitor $monitor, array $result): void
     {
-        $isSlow     = $result['is_slow'] ?? false;
-        $wasSlow    = $monitor->last_is_slow;
-        $inMaint    = MaintenanceWindow::isMonitorInMaintenance($monitor);
-
+        $isSlow  = $result['is_slow'] ?? false;
+        $wasSlow = $monitor->last_is_slow;
+        $inMaint = MaintenanceWindow::isMonitorInMaintenance($monitor);
         $monitor->update(['last_is_slow' => $isSlow]);
+        if ($isSlow && !$wasSlow && !$inMaint) $this->notifier->notifySlow($monitor);
+    }
 
-        if ($isSlow && !$wasSlow && !$inMaint) {
-            $this->notifier->notifySlow($monitor);
+    private function handleLatencyTrend(Monitor $monitor, array $result): void
+    {
+        if ($result['latency_trending'] ?? false) {
+            AuditService::log('monitor.latency_trend',
+                "Monitor \"{$monitor->name}\" latency terus naik ({$result['response_time']}ms)", $monitor);
         }
     }
 
@@ -92,37 +88,71 @@ class CheckMonitors extends Command
         $inMaintenance = MaintenanceWindow::isMonitorInMaintenance($monitor);
 
         if ($currentStatus === 'up') {
-            // Recover: hanya notif jika sebelumnya benar-benar sudah DOWN (retries >= retry_count)
             $wasConfirmedDown = $previousStatus === 'down' && $monitor->current_retries >= $monitor->retry_count;
-            $monitor->update(['current_retries' => 0]);
-
+            $monitor->update(['current_retries' => 0, 'flap_occurrences' => 0]);
             if ($wasConfirmedDown && !$inMaintenance) {
+                $monitor->update(['flap_first_at' => null]);
                 $this->closeIncident($monitor);
                 $this->batchUp[] = $monitor;
             }
             return;
         }
 
-        // Down: increment retries
         $newRetries = $monitor->current_retries + 1;
         $monitor->update(['current_retries' => $newRetries]);
 
-        // Notif hanya saat pertama kali retries mencapai threshold (bukan setiap check)
         if ($newRetries >= $monitor->retry_count && !$inMaintenance) {
-            $this->openIncident($monitor);
-            $this->batchDown[] = $monitor;
+            if ($monitor->isDependencyDown()) {
+                $this->line("  >> [{$monitor->name}] dependency down — skip");
+                return;
+            }
+            if ($monitor->flap_detection && $this->isFlapDetected($monitor)) {
+                $this->line("  >> [{$monitor->name}] flap detected — suppress");
+                AuditService::log('monitor.flap', "Monitor \"{$monitor->name}\" flap terdeteksi", $monitor);
+                return;
+            }
+            $bhOnly = \App\Models\AppSetting::get('notif_business_hours_only', '0');
+            if ($bhOnly === '1' && !BusinessHour::isBusinessHours()) {
+                $this->line("  >> [{$monitor->name}] di luar jam kerja — skip");
+            } else {
+                $this->openIncident($monitor);
+                $this->batchDown[] = $monitor;
+            }
         } elseif ($newRetries < $monitor->retry_count) {
-            // Rapid recheck: cek ulang dalam 20 detik
             RecheckMonitorJob::dispatch($monitor->id)->delay(now()->addSeconds(20));
         }
     }
 
+    private function isFlapDetected(Monitor $monitor): bool
+    {
+        $windowMin = $monitor->flap_window_minutes ?: 5;
+        $threshold = $monitor->flap_count_threshold ?: 3;
+        if (!$monitor->flap_first_at) {
+            $monitor->update(['flap_first_at' => now(), 'flap_occurrences' => 1]);
+            return false;
+        }
+        if ($monitor->flap_first_at->diffInMinutes(now()) > $windowMin) {
+            $monitor->update(['flap_first_at' => now(), 'flap_occurrences' => 1]);
+            return false;
+        }
+        $occ = $monitor->flap_occurrences + 1;
+        $monitor->update(['flap_occurrences' => $occ]);
+        return $occ >= $threshold;
+    }
+
+    private function checkCorrelatedIncident(): void
+    {
+        $downCount = count($this->batchDown);
+        $threshold = (int) \App\Models\AppSetting::get('correlated_incident_threshold', '5');
+        if ($downCount < $threshold) return;
+        $names = collect($this->batchDown)->pluck('name')->implode(', ');
+        AuditService::log('incident.major', "MAJOR INCIDENT: {$downCount} monitor DOWN serentak — {$names}");
+        $this->notifier->notifyMajorIncident($this->batchDown);
+    }
+
     private function openIncident(Monitor $monitor): void
     {
-        if (Incident::open()->where('monitor_id', $monitor->id)->exists()) {
-            return;
-        }
-
+        if (Incident::open()->where('monitor_id', $monitor->id)->exists()) return;
         Incident::create([
             'monitor_id' => $monitor->id,
             'category'   => 'monitor_downtime',
@@ -130,8 +160,6 @@ class CheckMonitors extends Command
             'status'     => 'open',
         ]);
         AuditService::log('monitor.down', "Monitor \"{$monitor->name}\" DOWN — insiden dibuka", $monitor, null);
-
-        // Dispatch eskalasi untuk rules yang berlaku (global + per-monitor)
         $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
         if ($incident) {
             $rules = EscalationRule::where('is_active', true)
@@ -147,17 +175,12 @@ class CheckMonitors extends Command
     private function closeIncident(Monitor $monitor): void
     {
         $incident = Incident::open()->where('monitor_id', $monitor->id)->latest('started_at')->first();
-
-        if (!$incident) {
-            return;
-        }
-
+        if (!$incident) return;
         $resolvedAt = now();
-
         $incident->update([
-            'resolved_at'       => $resolvedAt,
-            'status'            => 'closed',
-            'duration_seconds'  => $incident->started_at->diffInSeconds($resolvedAt),
+            'resolved_at'      => $resolvedAt,
+            'status'           => 'closed',
+            'duration_seconds' => $incident->started_at->diffInSeconds($resolvedAt),
         ]);
         AuditService::log('monitor.recovered', "Monitor \"{$monitor->name}\" UP kembali — insiden ditutup", $monitor, null);
     }
