@@ -74,29 +74,42 @@ class NotificationService
         $this->sendToMergedChannels($monitors, 'monitor.batch_up', $htmlMsg, $plainMsg);
     }
 
+    public function notifyMajorIncident(array $monitors): void
+    {
+        $count = count($monitors);
+        $time  = now()->format('d-m-Y H:i:s');
+        $names = collect($monitors)->pluck('name')->implode(', ');
+        $htmlMsg  = "🚨 <b>MAJOR INCIDENT: {$count} Monitor DOWN</b>\nWaktu: {$time}\n\nMonitor: {$names}";
+        $plainMsg = strip_tags($htmlMsg);
+        $this->sendToMergedChannels($monitors, 'incident.major', $htmlMsg, $plainMsg);
+    }
+
     private function sendToMergedChannels(array $monitors, string $event, string $htmlMsg, string $plainMsg): void
     {
-        // Kumpulkan semua channel_id unik dari semua monitor yang terlibat
         $allChannelIds = collect($monitors)
             ->flatMap(fn($m) => $m->notification_channels ?? [])
-            ->unique()
-            ->values()
-            ->all();
-
+            ->unique()->values()->all();
         if (empty($allChannelIds)) return;
 
-        $channels = NotificationChannel::whereIn('id', $allChannelIds)
-            ->where('is_active', true)
-            ->get();
-
+        $channels = NotificationChannel::whereIn('id', $allChannelIds)->where('is_active', true)->get();
         foreach ($channels as $channel) {
-            match ($channel->type) {
-                'telegram' => $this->sendTelegram($channel, $htmlMsg),
-                'whatsapp' => $this->sendFonnte($channel, $plainMsg),
-                'webhook'  => $this->sendWebhook($channel, $monitors[0], $event, $plainMsg),
-                default    => null,
-            };
+            $this->dispatchToChannel($channel, $monitors[0], $event, $htmlMsg, $plainMsg);
         }
+    }
+
+    private function dispatchToChannel(NotificationChannel $channel, Monitor $monitor, string $event, string $html, string $plain): void
+    {
+        match ($channel->type) {
+            'telegram' => $this->sendTelegram($channel, $html),
+            'whatsapp' => $this->sendFonnte($channel, $plain),
+            'webhook'  => $this->sendWebhook($channel, $monitor, $event, $plain),
+            'email'    => $this->sendEmail($channel, $event, $plain),
+            'slack'    => $this->sendSlack($channel, $html),
+            'discord'  => $this->sendDiscord($channel, $plain),
+            'ntfy'     => $this->sendNtfy($channel, $plain),
+            'pushover' => $this->sendPushover($channel, $plain),
+            default    => null,
+        };
     }
 
     public function notifySlow(Monitor $monitor): void
@@ -178,21 +191,11 @@ class NotificationService
     private function send(Monitor $monitor, string $event, string $htmlMsg, string $plainMsg): void
     {
         $channelIds = $monitor->notification_channels ?? [];
-        if (empty($channelIds)) {
-            return;
-        }
+        if (empty($channelIds)) return;
 
-        $channels = NotificationChannel::whereIn('id', $channelIds)
-            ->where('is_active', true)
-            ->get();
-
+        $channels = NotificationChannel::whereIn('id', $channelIds)->where('is_active', true)->get();
         foreach ($channels as $channel) {
-            match ($channel->type) {
-                'telegram'  => $this->sendTelegram($channel, $htmlMsg),
-                'whatsapp'  => $this->sendFonnte($channel, $plainMsg),
-                'webhook'   => $this->sendWebhook($channel, $monitor, $event, $plainMsg),
-                default     => null,
-            };
+            $this->dispatchToChannel($channel, $monitor, $event, $htmlMsg, $plainMsg);
         }
     }
 
@@ -244,43 +247,121 @@ class NotificationService
 
     public function sendTest(NotificationChannel $channel): array
     {
-        $message = "✅ *Test Notifikasi WatchTower*\nChannel: {$channel->name}\nWaktu: " . now()->format('d-m-Y H:i:s') . "\nJika pesan ini diterima, konfigurasi sudah benar.";
-
+        $msg = "WatchTower Test\nChannel: {$channel->name}\nWaktu: " . now()->format('d-m-Y H:i:s');
         try {
-            if ($channel->type === 'telegram') {
-                $payload = $this->parseTelegramTarget($channel->target);
-                $payload['text']       = $message;
-                $payload['parse_mode'] = 'HTML';
-                $res = Http::timeout(10)->post("https://api.telegram.org/bot{$channel->token}/sendMessage", $payload);
-                return ['ok' => $res->ok(), 'body' => $res->json()];
-            }
-
-            if ($channel->type === 'whatsapp') {
-                $res = Http::withHeaders(['Authorization' => $channel->token])
-                    ->timeout(15)
-                    ->asForm()
-                    ->post('https://api.fonnte.com/send', [
-                        'target'      => $channel->target,
-                        'message'     => $message,
-                        'countryCode' => '62',
+            match ($channel->type) {
+                'telegram' => (function() use ($channel, $msg, &$result) {
+                    $p = $this->parseTelegramTarget($channel->target);
+                    $p['text'] = $msg; $p['parse_mode'] = 'HTML';
+                    $r = Http::timeout(10)->post("https://api.telegram.org/bot{$channel->token}/sendMessage", $p);
+                    $result = ['ok' => $r->ok(), 'body' => $r->json()];
+                })(),
+                'whatsapp' => (function() use ($channel, $msg, &$result) {
+                    $r = Http::withHeaders(['Authorization' => $channel->token])->timeout(15)->asForm()
+                        ->post('https://api.fonnte.com/send', ['target' => $channel->target, 'message' => $msg, 'countryCode' => '62']);
+                    $result = ['ok' => $r->ok() && $r->json('status') !== false, 'body' => $r->json()];
+                })(),
+                'webhook' => (function() use ($channel, $msg, &$result) {
+                    $p = json_encode(['event' => 'test', 'message' => $msg, 'timestamp' => now()->toIso8601String()]);
+                    $h = ['Content-Type' => 'application/json', 'User-Agent' => 'WatchTower/2.0'];
+                    if ($channel->token) $h['X-WatchTower-Signature'] = 'sha256=' . hash_hmac('sha256', $p, $channel->token);
+                    $r = Http::withHeaders($h)->timeout(10)->withBody($p, 'application/json')->post($channel->target);
+                    $result = ['ok' => $r->ok(), 'body' => ['status_code' => $r->status()]];
+                })(),
+                'email' => (function() use ($channel, $msg, &$result) {
+                    $this->sendEmail($channel, 'test', $msg);
+                    $result = ['ok' => true, 'body' => ['info' => 'email queued']];
+                })(),
+                'slack' => (function() use ($channel, $msg, &$result) {
+                    $r = Http::timeout(10)->post($channel->target, ['text' => $msg]);
+                    $result = ['ok' => $r->ok(), 'body' => ['status_code' => $r->status()]];
+                })(),
+                'discord' => (function() use ($channel, $msg, &$result) {
+                    $r = Http::timeout(10)->post($channel->target, ['content' => $msg]);
+                    $result = ['ok' => $r->ok(), 'body' => ['status_code' => $r->status()]];
+                })(),
+                'ntfy' => (function() use ($channel, $msg, &$result) {
+                    $r = Http::timeout(10)->withHeaders(['Title' => 'WatchTower Test'])->withBody($msg)->post($channel->target);
+                    $result = ['ok' => $r->ok(), 'body' => ['status_code' => $r->status()]];
+                })(),
+                'pushover' => (function() use ($channel, $msg, &$result) {
+                    [$appKey, $userKey] = explode('|', $channel->token . '|', 2);
+                    $r = Http::timeout(10)->asForm()->post('https://api.pushover.net/1/messages.json', [
+                        'token' => trim($appKey), 'user' => trim($userKey), 'message' => $msg, 'title' => 'WatchTower',
                     ]);
-                return ['ok' => $res->ok() && $res->json('status') !== false, 'body' => $res->json()];
-            }
-
-            if ($channel->type === 'webhook') {
-                $payload = json_encode(['event' => 'test', 'message' => $message, 'timestamp' => now()->toIso8601String()]);
-                $headers = ['Content-Type' => 'application/json', 'User-Agent' => 'WatchTower/1.0'];
-                if (!empty($channel->token)) {
-                    $headers['X-WatchTower-Signature'] = 'sha256=' . hash_hmac('sha256', $payload, $channel->token);
-                }
-                $res = Http::withHeaders($headers)->timeout(10)->withBody($payload, 'application/json')->post($channel->target);
-                return ['ok' => $res->ok(), 'body' => ['status_code' => $res->status()]];
-            }
+                    $result = ['ok' => $r->ok(), 'body' => $r->json()];
+                })(),
+                default => ($result = ['ok' => false, 'body' => ['error' => 'Unknown channel type']]),
+            };
         } catch (\Throwable $e) {
             return ['ok' => false, 'body' => ['error' => $e->getMessage()]];
         }
+        return $result ?? ['ok' => false, 'body' => ['error' => 'no result']];
+    }
 
-        return ['ok' => false, 'body' => ['error' => 'Unknown channel type']];
+    private function sendEmail(NotificationChannel $channel, string $event, string $message): void
+    {
+        try {
+            // channel->target = email address; channel->token = optional "from" override
+            $to = $channel->target;
+            \Illuminate\Support\Facades\Mail::raw($message, function ($m) use ($to, $event) {
+                $m->to($to)->subject('WatchTower: ' . ucfirst(str_replace('.', ' ', $event)));
+            });
+        } catch (\Throwable $e) {
+            Log::error("Email notification failed: {$e->getMessage()}");
+        }
+    }
+
+    private function sendSlack(NotificationChannel $channel, string $message): void
+    {
+        try {
+            $plain = strip_tags($message);
+            Http::timeout(10)->post($channel->target, [
+                'blocks' => [[
+                    'type' => 'section',
+                    'text' => ['type' => 'mrkdwn', 'text' => $plain],
+                ]],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Slack notification failed: {$e->getMessage()}");
+        }
+    }
+
+    private function sendDiscord(NotificationChannel $channel, string $message): void
+    {
+        try {
+            Http::timeout(10)->post($channel->target, ['content' => strip_tags($message)]);
+        } catch (\Throwable $e) {
+            Log::error("Discord notification failed: {$e->getMessage()}");
+        }
+    }
+
+    private function sendNtfy(NotificationChannel $channel, string $message): void
+    {
+        // target = https://ntfy.sh/topic; token = optional auth token
+        try {
+            $req = Http::timeout(10)->withHeaders(['Title' => 'WatchTower Alert', 'Priority' => 'high']);
+            if ($channel->token) $req = $req->withToken($channel->token);
+            $req->withBody(strip_tags($message))->post($channel->target);
+        } catch (\Throwable $e) {
+            Log::error("ntfy notification failed: {$e->getMessage()}");
+        }
+    }
+
+    private function sendPushover(NotificationChannel $channel, string $message): void
+    {
+        // token format: "app_token|user_key"
+        try {
+            [$appKey, $userKey] = explode('|', $channel->token . '|', 2);
+            Http::timeout(10)->asForm()->post('https://api.pushover.net/1/messages.json', [
+                'token'   => trim($appKey),
+                'user'    => trim($userKey),
+                'message' => strip_tags($message),
+                'title'   => 'WatchTower',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Pushover notification failed: {$e->getMessage()}");
+        }
     }
 
     private function sendWebhook(NotificationChannel $channel, Monitor $monitor, string $event, string $message): void
