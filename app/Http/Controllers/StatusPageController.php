@@ -236,33 +236,31 @@ class StatusPageController extends Controller
         ]);
     }
 
+    public function statusPoll()
+    {
+        $monitors = Monitor::where('is_active', true)
+            ->get(['id', 'last_status', 'last_response_time', 'health_score'])
+            ->mapWithKeys(fn($m) => [$m->id => [
+                'status' => $m->last_status,
+                'rt'     => $m->last_response_time,
+                'score'  => $m->health_score,
+            ]]);
+
+        return response()->json($monitors, 200, ['Cache-Control' => 'no-cache, no-store']);
+    }
+
     public function stream(\Illuminate\Http\Request $request)
     {
-        // SSE: max 6 iterations × 15s = 90s max hold per connection.
-        // Browser auto-reconnects. Keeps PHP-FPM workers free on shared/sync server.
+        // SSE kept for backward compat — use /api/status-poll for dashboard instead
         return response()->stream(function () {
-            $lastSent = [];
-            $maxIterations = 6;
-            for ($i = 0; $i < $maxIterations; $i++) {
-                if (connection_aborted()) break;
-                $monitors = Monitor::where('is_active', true)
-                    ->get(['id', 'last_status', 'last_response_time', 'health_score'])
-                    ->mapWithKeys(fn($m) => [$m->id => [
-                        'status' => $m->last_status,
-                        'rt'     => $m->last_response_time,
-                        'score'  => $m->health_score,
-                    ]]);
-
-                $arr = $monitors->toArray();
-                if ($arr !== $lastSent) {
-                    echo "data: " . json_encode($arr) . "\n\n";
-                    ob_flush();
-                    flush();
-                    $lastSent = $arr;
-                }
-                sleep(15);
-            }
-            // Send close signal so browser knows to reconnect cleanly
+            $monitors = Monitor::where('is_active', true)
+                ->get(['id', 'last_status', 'last_response_time', 'health_score'])
+                ->mapWithKeys(fn($m) => [$m->id => [
+                    'status' => $m->last_status,
+                    'rt'     => $m->last_response_time,
+                    'score'  => $m->health_score,
+                ]]);
+            echo "data: " . json_encode($monitors->toArray()) . "\n\n";
             echo "event: done\ndata: {}\n\n";
             ob_flush(); flush();
         }, 200, [

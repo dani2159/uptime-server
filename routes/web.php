@@ -34,6 +34,7 @@ Route::get('/status/{slug}/badge.svg', [StatusPageController::class, 'badge'])->
 Route::get('/push/{token}', [MonitorController::class, 'receivePush'])->name('monitors.push');
 Route::get('/heartbeat/{token}', [MonitorController::class, 'receiveCronHeartbeat'])->name('monitors.heartbeat');
 Route::get('/events/monitors', [StatusPageController::class, 'stream'])->name('monitors.sse');
+Route::get('/api/status-poll', [StatusPageController::class, 'statusPoll'])->name('monitors.poll');
 
 // Webhook inbound receiver (public endpoint per token)
 Route::post('/webhook-in/{token}', [WebhookInboundController::class, 'receive'])->name('webhook-inbound.receive');

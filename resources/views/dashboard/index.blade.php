@@ -1031,41 +1031,47 @@ function monitorModal() {
 
 @push('scripts')
 <script>
-// SSE live update — dashboard only
+// Live status polling — fetch JSON, no persistent connection, no blocked workers
 (function() {
-    const SSE_URL = '{{ route('monitors.sse') }}';
-    let conn = null;
+    const POLL_URL = '{{ route('monitors.poll') }}';
+    const INTERVAL = 20000; // 20s
+    let timer = null;
     let prev = {};
 
     function applyData(data) {
-        try {
-            let anyDown = false;
-            Object.entries(data).forEach(([id, mon]) => {
-                document.querySelectorAll(`[data-monitor-id="${id}"]`).forEach(el => {
-                    if (el.dataset.field === 'status') {
-                        el.textContent = mon.status.toUpperCase();
-                        el.className = el.className.replace(/text-(red|emerald|amber|slate)-\d+/g, '');
-                        el.classList.add(mon.status === 'up' ? 'text-emerald-400' : mon.status === 'down' ? 'text-red-400' : 'text-amber-400');
-                    }
-                    if (el.dataset.field === 'rt')    el.textContent = mon.rt ? mon.rt + 'ms' : '-';
-                    if (el.dataset.field === 'score') el.textContent = mon.score ?? '-';
-                });
-                if (mon.status === 'down') anyDown = true;
-                if (prev[id] && prev[id] !== mon.status && mon.status === 'down') window.wtSound?.play();
-                prev[id] = mon.status;
+        let anyDown = false;
+        Object.entries(data).forEach(([id, mon]) => {
+            document.querySelectorAll(`[data-monitor-id="${id}"]`).forEach(el => {
+                if (el.dataset.field === 'status') {
+                    el.textContent = mon.status.toUpperCase();
+                    el.className = el.className.replace(/text-(red|emerald|amber|slate)-\d+/g, '');
+                    el.classList.add(mon.status === 'up' ? 'text-emerald-400' : mon.status === 'down' ? 'text-red-400' : 'text-amber-400');
+                }
+                if (el.dataset.field === 'rt')    el.textContent = mon.rt ? mon.rt + 'ms' : '-';
+                if (el.dataset.field === 'score') el.textContent = mon.score ?? '-';
             });
-            anyDown ? window.wtFavicon?.red() : window.wtFavicon?.normal();
-        } catch(e) {}
+            if (mon.status === 'down') anyDown = true;
+            if (prev[id] && prev[id] !== mon.status && mon.status === 'down') window.wtSound?.play();
+            prev[id] = mon.status;
+        });
+        anyDown ? window.wtFavicon?.red() : window.wtFavicon?.normal();
     }
 
-    function connect() {
-        if (conn) conn.close();
-        conn = new EventSource(SSE_URL);
-        conn.onmessage = e => applyData(JSON.parse(e.data));
-        conn.addEventListener('done', () => { conn.close(); setTimeout(connect, 2000); });
-        conn.onerror = () => { conn.close(); setTimeout(connect, 5000); };
+    async function poll() {
+        try {
+            const res = await fetch(POLL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (res.ok) applyData(await res.json());
+        } catch(e) {}
+        timer = setTimeout(poll, INTERVAL);
     }
-    connect();
+
+    // Pause polling saat tab tidak aktif, lanjut saat aktif kembali
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { clearTimeout(timer); }
+        else { poll(); }
+    });
+
+    poll(); // mulai segera
 })();
 </script>
 @endpush
