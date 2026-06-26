@@ -5,7 +5,10 @@ use App\Models\Setting;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('monitor:check')->everyMinute();
+Schedule::command('monitor:check-cron')->everyMinute();
 Schedule::command('monitor:ssl-check')->twiceDaily(8, 20);
+Schedule::command('monitor:check-domain-expiry')->dailyAt('03:00');
+Schedule::command('monitor:auto-close-incidents')->everyFiveMinutes();
 
 // Laporan otomatis — konfigurasi dari AppSetting
 try {

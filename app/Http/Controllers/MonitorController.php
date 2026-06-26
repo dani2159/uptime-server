@@ -159,8 +159,40 @@ class MonitorController extends Controller
     {
         $monitor = Monitor::where('push_token', $token)->where('type', 'push')->firstOrFail();
         $monitor->update(['last_push_at' => now(), 'last_status' => 'up', 'last_checked_at' => now()]);
-
         return response()->json(['ok' => true, 'msg' => 'Heartbeat received']);
+    }
+
+    public function receiveCronHeartbeat(string $token)
+    {
+        $monitor = Monitor::where('push_token', $token)->where('type', 'cron')->firstOrFail();
+        $monitor->update(['last_heartbeat_at' => now(), 'last_status' => 'up', 'last_checked_at' => now()]);
+        return response()->json(['ok' => true, 'msg' => 'Cron heartbeat received']);
+    }
+
+    public function clone(Monitor $monitor)
+    {
+        $new = $monitor->replicate();
+        $new->name = $monitor->name . ' (copy)';
+        $new->is_active = false;
+        $new->last_status = 'pending';
+        $new->current_retries = 0;
+        $new->push_token = \Illuminate\Support\Str::random(32);
+        $new->save();
+        $new->tags()->sync($monitor->tags->pluck('id'));
+        AuditService::log('monitor.cloned', "Monitor \"{$monitor->name}\" diduplikat menjadi \"{$new->name}\"", $new);
+        return redirect()->route('monitors.edit', $new)->with('success', "Monitor berhasil diduplikat.");
+    }
+
+    public function simulate(Request $request, Monitor $monitor)
+    {
+        $event = $request->input('event', 'down');
+        match ($event) {
+            'down' => $this->notifier->notifyDown($monitor),
+            'up'   => $this->notifier->notifyRecovered($monitor),
+            'slow' => $this->notifier->notifySlow($monitor),
+        };
+        AuditService::log('monitor.simulate', "Alert simulator: event={$event} pada \"{$monitor->name}\"", $monitor);
+        return response()->json(['ok' => true, 'event' => $event]);
     }
 
     public function toggle(Monitor $monitor)

@@ -189,4 +189,69 @@ class StatusPageController extends Controller
             ->header('X-Frame-Options', 'ALLOWALL')
             ->header('Content-Security-Policy', 'frame-ancestors *');
     }
+
+    public function badge(string $slug)
+    {
+        $page     = StatusPage::where('slug', $slug)->where('is_public', true)->firstOrFail();
+        $monitors = Monitor::whereIn('id', $page->allMonitorIds())->get();
+        $isOk     = $monitors->isEmpty() || $monitors->every(fn($m) => $m->last_status === 'up');
+        $label    = urlencode($page->title);
+        $status   = $isOk ? 'operational' : 'degraded';
+        $color    = $isOk ? '3fb950' : 'f85149';
+        $upCount  = $monitors->where('last_status', 'up')->count();
+        $total    = $monitors->count();
+        $message  = urlencode("{$upCount}/{$total}");
+
+        $svg = <<<SVG
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="20">
+          <linearGradient id="s" x2="0" y2="100%">
+            <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+            <stop offset="1" stop-opacity=".1"/>
+          </linearGradient>
+          <rect rx="3" width="220" height="20" fill="#555"/>
+          <rect rx="3" x="130" width="90" height="20" fill="#{$color}"/>
+          <rect rx="3" width="220" height="20" fill="url(#s)"/>
+          <g fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="11">
+            <text x="65" y="15">{$page->title}</text>
+            <text x="175" y="15">{$status} {$upCount}/{$total}</text>
+          </g>
+        </svg>
+        SVG;
+
+        return response($svg, 200, [
+            'Content-Type'  => 'image/svg+xml',
+            'Cache-Control' => 'no-cache, no-store',
+            'Pragma'        => 'no-cache',
+        ]);
+    }
+
+    public function stream(\Illuminate\Http\Request $request)
+    {
+        // SSE endpoint — push live monitor status updates
+        return response()->stream(function () {
+            $lastSent = [];
+            $maxIterations = 30; // keep connection alive ~5min (10s interval)
+            for ($i = 0; $i < $maxIterations; $i++) {
+                $monitors = Monitor::where('is_active', true)
+                    ->get(['id', 'name', 'last_status', 'last_response_time', 'last_checked_at', 'health_score'])
+                    ->mapWithKeys(fn($m) => [$m->id => [
+                        'status' => $m->last_status,
+                        'rt'     => $m->last_response_time,
+                        'score'  => $m->health_score,
+                    ]]);
+
+                if ($monitors->toArray() !== $lastSent) {
+                    echo "data: " . json_encode($monitors) . "\n\n";
+                    ob_flush();
+                    flush();
+                    $lastSent = $monitors->toArray();
+                }
+                sleep(10);
+            }
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
 }
