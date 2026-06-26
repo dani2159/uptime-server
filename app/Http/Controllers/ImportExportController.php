@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 
 class ImportExportController extends Controller
 {
+    public function page()
+    {
+        return view('monitors.import');
+    }
+
     public function export()
     {
         $monitors = \App\Models\Monitor::with('tags')->get()->map(fn($m) => [

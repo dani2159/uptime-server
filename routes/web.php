@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('escalations', EscalationController::class)->except(['show']);
 
     // Import/Export
+    Route::get('/import', [ImportExportController::class, 'page'])->name('monitors.import-page');
     Route::get('/export', [ImportExportController::class, 'export'])->name('monitors.export');
     Route::post('/import', [ImportExportController::class, 'import'])->name('monitors.import');
     Route::post('/import-csv', [ImportExportController::class, 'importCsv'])->name('monitors.import-csv');

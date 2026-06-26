@@ -58,30 +58,36 @@
                 [
                     'label'   => 'Monitoring',
                     'icon'    => 'fa-chart-bar',
-                    'pattern' => 'monitors.*|api-health.*|maintenance.*|tags.*',
+                    'pattern' => 'monitors.*|api-health.*|maintenance.*|tags.*|templates.*|webhook-inbound.*|api-tokens.*',
                     'items'   => [
-                        ['route' => 'monitors.index',       'pattern' => 'monitors.*',     'icon' => 'fa-chart-bar',  'label' => 'Monitors'],
-                        ['route' => 'api-health.dashboard', 'pattern' => 'api-health.*',   'icon' => 'fa-bolt',       'label' => 'API Health'],
-                        ['route' => 'maintenance.index',    'pattern' => 'maintenance.*',  'icon' => 'fa-clock',      'label' => 'Maintenance'],
-                        ['route' => 'tags.index',           'pattern' => 'tags.*',         'icon' => 'fa-tags',       'label' => 'Tags'],
+                        ['route' => 'monitors.index',       'pattern' => 'monitors.*',          'icon' => 'fa-chart-bar',       'label' => 'Monitors'],
+                        ['route' => 'api-health.dashboard', 'pattern' => 'api-health.*',        'icon' => 'fa-bolt',            'label' => 'API Health'],
+                        ['route' => 'templates.index',      'pattern' => 'templates.*',         'icon' => 'fa-layer-group',     'label' => 'Templates'],
+                        ['route' => 'maintenance.index',    'pattern' => 'maintenance.*',       'icon' => 'fa-clock',           'label' => 'Maintenance'],
+                        ['route' => 'tags.index',           'pattern' => 'tags.*',              'icon' => 'fa-tags',            'label' => 'Tags'],
+                        ['route' => 'webhook-inbound.index','pattern' => 'webhook-inbound.*',   'icon' => 'fa-satellite-dish',  'label' => 'Webhook In'],
+                        ['route' => 'api-tokens.index',     'pattern' => 'api-tokens.*',        'icon' => 'fa-key',             'label' => 'API Tokens'],
                     ],
                 ],
                 [
                     'label'   => 'Insiden',
                     'icon'    => 'fa-triangle-exclamation',
-                    'pattern' => 'incidents.*|sla-report.*',
+                    'pattern' => 'incidents.*|sla-report.*|sla.*',
                     'items'   => [
                         ['route' => 'incidents.index',   'pattern' => 'incidents.*',   'icon' => 'fa-triangle-exclamation', 'label' => 'Daftar Insiden'],
                         ['route' => 'sla-report.index',  'pattern' => 'sla-report.*',  'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
+                        ['route' => 'sla.index',         'pattern' => 'sla.*',         'icon' => 'fa-file-contract',        'label' => 'SLA Contracts'],
                     ],
                 ],
                 [
                     'label'   => 'Notifikasi',
                     'icon'    => 'fa-bell',
-                    'pattern' => 'channels.*|escalations.*',
+                    'pattern' => 'channels.*|escalations.*|on-call.*|business-hours.*',
                     'items'   => [
-                        ['route' => 'channels.index',    'pattern' => 'channels.*',    'icon' => 'fa-bell',              'label' => 'Channels'],
-                        ['route' => 'escalations.index', 'pattern' => 'escalations.*', 'icon' => 'fa-bell-slash',        'label' => 'Eskalasi'],
+                        ['route' => 'channels.index',       'pattern' => 'channels.*',       'icon' => 'fa-bell',              'label' => 'Channels'],
+                        ['route' => 'escalations.index',    'pattern' => 'escalations.*',    'icon' => 'fa-bell-slash',        'label' => 'Eskalasi'],
+                        ['route' => 'on-call.index',        'pattern' => 'on-call.*',        'icon' => 'fa-calendar-alt',      'label' => 'On-Call'],
+                        ['route' => 'business-hours.index', 'pattern' => 'business-hours.*', 'icon' => 'fa-clock',             'label' => 'Jam Kerja'],
                         ['route' => 'settings.notifications', 'pattern' => 'settings.notifications*', 'icon' => 'fa-pen-to-square', 'label' => 'Template Pesan'],
                     ],
                 ],
@@ -102,9 +108,11 @@
                 [
                     'label'   => 'Settings',
                     'icon'    => 'fa-sliders',
-                    'route'   => 'settings.index',
-                    'pattern' => 'settings.index',
-                    'single'  => true,
+                    'pattern' => 'settings.*|monitors.import*',
+                    'items'   => [
+                        ['route' => 'settings.index',        'pattern' => 'settings.index',       'icon' => 'fa-sliders',        'label' => 'Umum'],
+                        ['route' => 'monitors.import-page',  'pattern' => 'monitors.import*',     'icon' => 'fa-file-import',    'label' => 'Import / Export'],
+                    ],
                 ],
             ];
         @endphp
