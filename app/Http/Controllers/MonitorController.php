@@ -88,9 +88,15 @@ class MonitorController extends Controller
         ];
     }
 
+    private function normalizeMonitorData(array $data): array
+    {
+        $data['auth_type'] ??= 'none';
+        return $data;
+    }
+
     public function store(Request $request)
     {
-        $data = $request->validate($this->monitorValidationRules($request));
+        $data = $this->normalizeMonitorData($request->validate($this->monitorValidationRules($request)));
 
         $monitor = Monitor::create($data);
         $monitor->tags()->sync($request->input('tags', []));
@@ -139,7 +145,7 @@ class MonitorController extends Controller
     {
         $rules = $this->monitorValidationRules($request);
         $rules['is_active'] = 'boolean';
-        $data = $request->validate($rules);
+        $data = $this->normalizeMonitorData($request->validate($rules));
 
         $monitor->update($data);
         $monitor->tags()->sync($request->input('tags', []));

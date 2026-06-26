@@ -1,41 +1,88 @@
 # WatchTower — Uptime Monitor
 
-Aplikasi monitoring uptime website, server, dan kesehatan API — dibangun dengan Laravel 12.
-Mendukung monitoring domain beserta IP address-nya, cek konektivitas endpoint BPJS & Satu Sehat,
-notifikasi otomatis via Telegram, WhatsApp & Webhook, serta pencatatan insiden dan laporan SLA.
+Aplikasi monitoring uptime website, server, database, domain, dan kesehatan API — dibangun dengan Laravel 12.
+Mendukung 10 tipe monitor, notifikasi multi-channel, on-call schedule, SLA contract, flap detection, incident tracking, dan status page publik.
 
 ---
 
 ## Fitur
 
-- **Monitor HTTP** — cek uptime dengan HTTP request; UP selama merespons (termasuk 4xx/5xx), DOWN hanya jika koneksi gagal total
-- **Monitor Ping** — ICMP ping ke host/IP; cocok untuk server yang memblokir HTTP
-- **Monitor TCP** — cek konektivitas port TCP (database, SMTP, dll)
-- **Monitor DNS** — resolve DNS dan bandingkan dengan nilai yang diharapkan
-- **Monitor Keyword** — HTTP request + cek keberadaan string di response body
-- **Monitor Push** — endpoint heartbeat untuk monitoring cronjob / background worker
-- **DNS IP Lookup** — resolve semua IP (A & AAAA) dari domain secara otomatis
-- **API Health Dashboard** — cek konektivitas endpoint BPJS, Satu Sehat, dan service lainnya dengan speedometer response time
-- **BPJS CDN Switch** — toggle CDN / Non-CDN langsung dari dashboard; cache hasil dibersihkan otomatis
-- **Notifikasi Telegram, WhatsApp & Webhook** — alert otomatis saat down/recover; tiap channel dipilih per monitor
-- **Webhook HMAC** — header `X-WatchTower-Signature: sha256=<hmac>` untuk verifikasi keaslian payload
-- **Status Page Builder** — halaman status publik dengan sections/grup monitor; drag reorder, kombinasi monitor uptime + API health
-- **Maintenance Window** — jadwalkan downtime terjadwal; notifikasi dan insiden tidak aktif selama window berlangsung
-- **Incident Tracking** — insiden tercatat otomatis saat transisi DOWN/UP; tambah manual untuk gangguan umum atau laporan client
-- **SLA Report** — availability %, total downtime, jumlah insiden, MTTR — per periode 7/30/90 hari
-- **Settings** — konfigurasi interval pengecekan API health (5 menit s/d 24 jam) dan on/off auto-check langsung dari UI
-- **Server IP & ISP** — public IP dan nama ISP server ditampilkan di header semua halaman; refresh tanpa reload
-- **History & Log** — riwayat pengecekan dan grafik response time 48 jam per monitor
-- **Heartbeat Bar** — visualisasi 90 pengecekan terakhir
+### Monitor
+- **HTTP / HTTPS** — cek konektivitas URL; UP selama merespons, DOWN hanya jika koneksi gagal total
+- **Keyword** — HTTP + cek keberadaan string di response body
+- **Ping (ICMP)** — cocok untuk server yang memblokir HTTP
+- **TCP Port** — cek konektivitas port (database, SMTP, dll)
+- **DNS** — resolve domain dan bandingkan dengan expected value
+- **Push Heartbeat** — endpoint untuk monitoring cronjob / background worker
+- **Cron Job Monitor** — DOWN otomatis jika tidak ada heartbeat dalam interval yang dikonfigurasi
+- **Database** — koneksi langsung ke MySQL, PostgreSQL, atau Redis
+- **Docker Container** — cek status container via Docker socket atau remote API
+- **WHOIS / Domain Expiry** — alert X hari sebelum domain expired
+
+### Alerting & Notifikasi
+- **Multi-channel notifikasi** — Telegram, WhatsApp (Fonnte), Email (SMTP), Slack, Discord, ntfy.sh, Pushover, Webhook HTTP
+- **Flap Detection** — tahan notifikasi jika monitor UP-DOWN berulang dalam window waktu tertentu
+- **Business Hours Alerting** — routing notifikasi berbeda di jam kerja vs luar jam kerja
+- **On-Call Schedule** — jadwal shift siaga tim; alert otomatis dikirim ke channel siaga yang aktif
+- **Eskalasi Insiden** — dispatch notifikasi ke channel eskalasi jika DOWN tidak di-ack dalam X menit
+- **Correlated Major Incident** — 5+ monitor DOWN bersamaan otomatis dibuat sebagai Major Incident
+- **Alert Suppression** — regex pattern pada response body untuk mencegah false positive
+
+### Monitoring Lanjutan
+- **Response Time Warning** — alert terpisah jika response time melebihi threshold (ms)
+- **Latency Trend Alert** — warning jika response time naik konsisten 5 cek terakhir
+- **Response Size Check** — alert jika response terlalu kecil atau terlalu besar
+- **Body Assertion** — validasi JSON path dari response body ($.status === "ok")
+- **HTTP Auth** — Basic Auth dan Bearer Token per monitor
+- **Custom Headers** — header tambahan per monitor (JSON)
+- **SSL Certificate Check** — alert jika SSL hampir expired (≤30 hari); berjalan 2x sehari
+- **Domain Expiry Check** — alert jika domain hampir expired
+- **Accepted Status Codes** — set HTTP code mana yang dianggap UP (default 200–399)
+- **Ignore TLS Error** — bypass SSL cert invalid untuk server internal
+- **Follow Redirects** — toggle + max redirect count per monitor
+- **Custom User-Agent** — set UA per monitor agar tidak diblock server
+- **HTTP Proxy** — routing request lewat proxy SOCKS5/HTTP per monitor
+
+### Incident & SLA
+- **Incident Tracking** — insiden DOWN/UP tercatat otomatis; tambah manual untuk gangguan umum
+- **Incident Auto-Close** — otomatis tutup insiden jika UP selama X menit berturut-turut
+- **SLA Contract** — target SLA per layanan, tracking sisa downtime budget, progress bar
+- **Post-Mortem Template** — template RCA otomatis saat insiden ditutup
+- **Audit Log** — semua aksi (check, toggle, create, delete) tercatat dengan timestamp dan IP
+
+### Organisasi & Dashboard
+- **Tags / Grup** — multi-tag per monitor, filter dashboard per tag, badge warna
+- **Monitor Clone** — duplikat monitor beserta semua setting dan tag
+- **Monitor Silence** — diam sementara (1/4/24 jam) tanpa mematikan monitor
+- **Dependency Map** — skip notifikasi jika parent/dependency DOWN
+- **Service Topology** — visualisasi grafik dependency antar monitor
+- **Environment Label** — Production / Staging / Development / Testing; alert berbeda per env
+- **Monitor Health Score** — score 0–100 berdasarkan uptime + response time + frekuensi insiden
+
+### Status Page & Integrasi
+- **Status Page Builder** — halaman publik `/status/{slug}`; sections, embed widget, custom domain
+- **Uptime Badge SVG** — badge embed untuk README/portal via `/status/{slug}/badge.svg`
+- **REST API** — `GET /api/monitors` dengan Bearer token untuk integrasi eksternal
+- **API Token Manager** — buat/hapus token dengan expiry dan scope
+- **Webhook Inbound** — terima alert dari Grafana/Zabbix/Prometheus dan trigger aksi
+- **Import/Export JSON** — backup dan restore konfigurasi monitor
+- **Bulk Import CSV** — upload CSV daftar monitor sekaligus
+- **Monitor Template Library** — preset siap pakai: MySQL, Redis, Nginx, SatuSehat, BPJS, dll
+- **Smoke Test** — trigger check semua monitor setelah deploy; laporan pass/fail
+
+### Laporan & Settings
+- **Laporan Harian/Mingguan** — dikirim otomatis ke channel yang dikonfigurasi
+- **Maintenance Window** — jadwalkan downtime; notifikasi dan insiden tidak aktif selama window
+- **Business Hours** — konfigurasi jam kerja per hari untuk routing alert
 - **Dark Mode** — toggle tema gelap/terang dengan persistensi localStorage
-- **Live Clock** — jam dan tanggal real-time di semua halaman (update setiap detik)
+- **API Health Dashboard** — monitor BPJS, Satu Sehat, dan service eksternal lainnya
 
 ---
 
 ## Teknologi
 
 | Komponen | Teknologi |
-| --- | --- |
+|---|---|
 | Framework | Laravel 12 (PHP 8.2) |
 | Database | MySQL 8.0 |
 | Frontend | Blade + Tailwind CSS (CDN) + Alpine.js v3 |
@@ -44,74 +91,71 @@ notifikasi otomatis via Telegram, WhatsApp & Webhook, serta pencatatan insiden d
 | Alert | SweetAlert2 |
 | Notifikasi WA | Fonnte API |
 | Notifikasi Telegram | Telegram Bot API |
+| Notifikasi Email | SMTP (Laravel Mail) |
 | Container | Docker + Docker Compose |
 | Process Manager | Supervisor (nginx + php-fpm + scheduler) |
 
 ---
 
-## Login Default
-
-| Field | Value |
-| --- | --- |
-| Email | `admin@watchtower.local` |
-| Password | `watchtower123` |
-
-Jalankan seeder jika belum ada user:
-
-```bash
-php artisan db:seed
-```
-
-Ganti password setelah login pertama:
-
-```bash
-php artisan tinker --execute="App\Models\User::where('email','admin@watchtower.local')->first()->update(['password'=>bcrypt('password_baru')]);"
-```
-
----
-
 ## Tipe Monitor
 
-| Tipe | Cara Cek | Field | Cocok Untuk |
-| --- | --- | --- | --- |
-| `HTTP` | HTTP GET | URL lengkap | Website, REST API |
-| `Ping` | ICMP ping | Hostname / IP | Server yang blokir HTTP, infrastruktur jaringan |
-| `TCP` | Koneksi TCP | Host + Port | Database, mail server, port arbitrer |
-| `DNS` | DNS lookup | Domain + expected IP | DNS resolver, zone check |
-| `Keyword` | HTTP GET + string check | URL + kata kunci | Validasi konten halaman |
-| `Push` | Heartbeat endpoint | Token otomatis | Cronjob, background worker |
-
-> Tipe Ping dan TCP menerima IP langsung (contoh: `10.6.0.11`) — tidak perlu `http://`.
+| Tipe | Input Utama | Cara Cek | Cocok Untuk |
+|---|---|---|---|
+| `http` | URL (`https://...`) | HTTP request | Website, REST API |
+| `keyword` | URL + kata kunci | HTTP + string check | Validasi konten halaman |
+| `ping` | Hostname / IP | ICMP ping | Server, infrastruktur jaringan |
+| `tcp` | Host + Port | TCP connection | Database, mail server, port arbitrer |
+| `dns` | Domain + expected value | DNS resolve | DNS resolver, zone check |
+| `push` | Token (auto) | Terima heartbeat | Cronjob, background worker |
+| `cron` | Token + interval (mnt) | Heartbeat berkala | Cron job yang harus jalan rutin |
+| `database` | Connection string | Koneksi DB langsung | MySQL, PostgreSQL, Redis |
+| `docker` | Container name / socket | Docker API | Container health check |
+| `whois` | Domain | WHOIS lookup | Pantau expiry domain |
 
 ---
 
 ## Logika UP / DOWN
 
 ### HTTP & Keyword
-
-Server dianggap **UP** selama merespons dengan kode apapun (200, 403, 503, dll). **DOWN** hanya jika koneksi gagal total (timeout, connection refused, DNS fail). Ini disengaja — tujuannya cek konektivitas jaringan, bukan validasi aplikasi. Contoh: BPJS mengembalikan 503 dari IP non-whitelist — server tetap aktif.
-
-### Ping
-
-UP jika ICMP reply diterima. DOWN jika timeout / host unreachable.
+UP selama server merespons dengan kode apapun (200, 403, 503, dll). DOWN hanya jika koneksi gagal total (timeout, connection refused, DNS fail). Disengaja — tujuan utamanya cek konektivitas jaringan, bukan validasi aplikasi.
 
 ### Retry & Notifikasi
-
-Notifikasi dikirim **hanya saat** jumlah kegagalan berturut-turut mencapai nilai **Retry** yang dikonfigurasi:
+Notifikasi dikirim hanya saat jumlah kegagalan berturut-turut mencapai nilai **Retry**:
 
 | Retry | Perilaku |
-| --- | --- |
-| 1 | 1× check DOWN → langsung notifikasi |
+|---|---|
+| 1 | 1× DOWN → langsung notifikasi |
 | 3 | butuh 3× DOWN berturut-turut → notifikasi |
 
-Ini mencegah gangguan sesaat (packet loss singkat) membanjiri notifikasi.
+Mencegah gangguan sesaat (packet loss singkat) membanjiri notifikasi.
+
+### Flap Detection
+Jika monitor UP-DOWN lebih dari N kali dalam window X menit → notifikasi ditahan, status `FLAPPING` dicatat.
+
+---
+
+## Login Default
+
+| Field | Value |
+|---|---|
+| Email | `admin@watchtower.local` |
+| Password | `watchtower123` |
+
+Jalankan seeder jika belum ada user:
+```bash
+php artisan db:seed
+```
+
+Ganti password setelah login pertama:
+```bash
+php artisan tinker --execute="App\Models\User::where('email','admin@watchtower.local')->first()->update(['password'=>bcrypt('password_baru')]);"
+```
 
 ---
 
 ## Instalasi — Server Langsung
 
 ### 1. Clone & install
-
 ```bash
 git clone <repo-url> uptime-monitor
 cd uptime-monitor
@@ -119,14 +163,12 @@ composer install --optimize-autoloader --no-dev
 ```
 
 ### 2. Konfigurasi environment
-
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
 Edit `.env`:
-
 ```env
 APP_URL=https://monitor.namadomain.com
 
@@ -136,16 +178,21 @@ DB_DATABASE=uptime_monitor
 DB_USERNAME=root
 DB_PASSWORD=your_password
 
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=587
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="watchtower@namadomain.com"
+
 BPJS_HOST_NON_CDN=https://apijkn.bpjs-kesehatan.go.id
 BPJS_HOST_CDN=https://new-apijkn.bpjs-kesehatan.go.id
 BPJS_CDN_MODE=non_cdn
-BPJS_PCARE_URL=https://apijkn.kesehatan.go.id/pcare-rest
 
 SATUSEHAT_BASE_URL=https://api-satusehat.kemkes.go.id
 ```
 
 ### 3. Migrasi & seeder
-
 ```bash
 php artisan migrate
 php artisan db:seed
@@ -153,7 +200,6 @@ php artisan storage:link
 ```
 
 ### 4. Optimasi production
-
 ```bash
 php artisan config:cache
 php artisan route:cache
@@ -161,21 +207,27 @@ php artisan view:cache
 ```
 
 ### 5. Scheduler (crontab)
-
 ```bash
 crontab -e
 ```
-
 ```cron
 * * * * * cd /path/to/uptime-monitor && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Scheduler menjalankan `monitor:check` tiap menit dan `api:health-check` sesuai interval di **Settings**.
+Scheduler aktif:
+| Command | Jadwal |
+|---|---|
+| `monitor:check` | Setiap menit |
+| `monitor:check-cron` | Setiap menit |
+| `monitor:ssl-check` | 2x sehari (08.00 & 20.00) |
+| `monitor:check-domain-expiry` | Setiap hari 03.00 |
+| `monitor:auto-close-incidents` | Setiap 5 menit |
+| `monitor:report` | Harian/mingguan sesuai Settings |
+| `api:health-check` | Sesuai interval di Settings |
 
 ### 6. Web Server
 
 **Nginx:**
-
 ```nginx
 server {
     listen 80;
@@ -184,7 +236,6 @@ server {
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
-
     index index.php;
 
     location / {
@@ -208,7 +259,7 @@ server {
 
 ```bash
 cp .env.example .env
-# Edit .env: APP_URL, DB_PASSWORD, BPJS URL, dll
+# Edit .env sesuai kebutuhan
 
 docker compose up -d --build
 
@@ -219,390 +270,79 @@ docker compose exec app php artisan config:cache
 docker compose exec app php artisan route:cache
 ```
 
-Akses di `http://localhost:8080` (atau sesuai `APP_PORT` di `.env`).
-
----
-
-## Menggunakan Database Eksternal
-
-### Tanpa Docker
-
-Set di `.env`:
-
-```env
-DB_HOST=192.168.1.100
-DB_PORT=3306
-DB_DATABASE=uptime_monitor
-DB_USERNAME=user_db
-DB_PASSWORD=password_db
-```
-
-Jalankan migrasi seperti biasa.
-
-### Docker + DB Eksternal
-
-Edit `docker-compose.yml` — hapus service `db` dan `depends_on`, biarkan `app` pakai DB eksternal:
-
-```yaml
-services:
-  app:
-    build: .
-    restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8080}:80"
-    env_file: .env
-    volumes:
-      - app_storage:/var/www/html/storage/app
-      - app_logs:/var/www/html/storage/logs
-
-volumes:
-  app_storage:
-  app_logs:
-```
-
-Set `DB_HOST` di `.env` ke IP server DB. Pastikan MySQL mengizinkan koneksi dari IP container.
+Akses di `http://localhost:8080`.
 
 ---
 
 ## Update Aplikasi
 
 ### Server Langsung
-
 ```bash
-cd /path/to/uptime-monitor
-
 git pull origin main
-
 composer install --optimize-autoloader --no-dev --no-interaction
-
 php artisan migrate --force
-
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
-Jika ada asset baru di `public/`:
-
-```bash
-php artisan storage:link
+php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
 
 ### Docker
-
 ```bash
 git pull origin main
-
 docker compose build --no-cache
-
 docker compose up -d
-
 docker compose exec app php artisan migrate --force
 docker compose exec app php artisan config:cache
-docker compose exec app php artisan route:cache
-docker compose exec app php artisan view:cache
 ```
 
-> Build image dulu (`build`) sebelum restart container (`up -d`) agar downtime minimal — container lama masih jalan selama proses build berlangsung.
-> Semua migration bersifat non-destructive. Data yang sudah ada aman setelah `migrate --force`.
-
 ---
 
-## Cara Menggunakan Fitur Utama
-
-### Tambah Monitor
-
-**Dashboard → Tambah Monitor**, isi:
-
-| Field | Keterangan |
-| --- | --- |
-| Nama | Label deskriptif |
-| Tipe | HTTP / Ping / TCP / DNS / Keyword / Push |
-| URL / Host | URL lengkap (HTTP), hostname atau IP (Ping/TCP) |
-| Interval | Seberapa sering dicek (menit) |
-| Timeout | Batas waktu tunggu respons (detik) |
-| Retry | Kegagalan berturut-turut sebelum dianggap DOWN |
-| Channel Notifikasi | Pilih WA / Telegram / Webhook yang menerima alert |
-
-IP domain di-resolve otomatis dan ditampilkan di halaman detail monitor.
-
-### Status Page Builder
-
-**Status Pages → Buat Status Page:**
-
-1. Isi judul, slug URL, dan deskripsi
-2. Tambah section/grup (contoh: "Layanan Web", "API Services")
-3. Tambah monitor ke tiap section dari dropdown
-4. Pilih layanan API (BPJS, Satu Sehat) yang ditampilkan
-5. Atur urutan dengan tombol panah
-6. Klik **Buat** — halaman publik aktif di `/status/{slug}`
-
-### Maintenance Window
-
-**Maintenance → Tambah:** tentukan nama, monitor terdampak, waktu mulai dan selesai. Selama window aktif: notifikasi tidak dikirim, insiden tidak dicatat.
-
-### Incident Tracking
-
-**Insiden** — insiden DOWN/UP tercatat otomatis. Tambah manual untuk gangguan yang tidak terdeteksi monitor (pemadaman listrik, gangguan jaringan, laporan client).
-
-| Field | Keterangan |
-| --- | --- |
-| Kategori | `monitor_downtime` / Insiden Umum IT / Laporan Client |
-| Severity | Low / Medium / High / Critical |
-| Durasi | Dihitung otomatis dari started\_at ke resolved\_at |
-| Pelapor | Nama dan kontak (khusus Laporan Client) |
-
-### SLA Report
-
-**SLA Report** — pilih periode 7 / 30 / 90 hari:
-
-| Metrik | Keterangan |
-| --- | --- |
-| Availability % | `(periode - downtime) / periode × 100` |
-| Jumlah Insiden | Insiden kategori monitor\_downtime |
-| Total Downtime | Akumulasi durasi insiden di periode |
-| MTTR | Rata-rata durasi insiden yang selesai |
-
-### Settings — Interval API Health
-
-**Settings** → atur interval pengecekan BPJS dan layanan API:
-
-| Preset | Jadwal cron |
-| --- | --- |
-| 10 menit | `*/10 * * * *` |
-| 15 menit | `*/15 * * * *` |
-| 30 menit | `*/30 * * * *` |
-| 1 jam | `0 */1 * * *` |
-| 6 jam | `0 */6 * * *` |
-
-Bisa juga isi manual (min 5, max 1440 menit). Toggle **Auto Check** untuk nonaktifkan pengecekan otomatis — hanya cek manual dari dashboard.
-
-> **Rekomendasi BPJS:** gunakan minimal 15–30 menit agar IP tidak diblokir server BPJS akibat terlalu sering hit.
-
-### Server IP & ISP
-
-Public IP dan nama ISP server tampil otomatis di sudut kanan header semua halaman. Klik **Refresh** di halaman Settings untuk force-update (cache 5 menit). Berguna untuk memverifikasi IP mana yang sedang digunakan server sebelum whitelist di BPJS.
-
----
-
-## Monitoring ISP / Konektivitas Jaringan
-
-Gunakan tipe **Ping** ke beberapa target sekaligus untuk mendiagnosis letak masalah:
-
-| Monitor | Target | Arti jika DOWN |
-| --- | --- | --- |
-| Gateway Lokal | IP gateway lokal (contoh `192.168.1.1`) | Router/switch lokal bermasalah |
-| ISP Gateway | IP hop pertama dari traceroute | ISP upstream bermasalah |
-| Internet | `8.8.8.8` atau `1.1.1.1` | Koneksi internet tidak terjangkau |
-
-Cari IP first-hop ISP di Windows:
-
-```cmd
-tracert 8.8.8.8
-```
-
-Lihat hop ke-2 atau ke-3.
-
----
-
-## Studi Kasus
-
-### Kasus 1 — Server di Astinet, ingin tahu apakah iForte down
-
-Server production terpasang di jaringan Astinet. Sistem ingin mendeteksi jika ISP iForte (yang dipakai user atau kantor cabang) sedang bermasalah.
-
-#### Opsi A — Ping ke infrastruktur iForte dari Astinet
-
-Cari IP publik milik iForte sendiri (bukan IP customer mereka), misalnya DNS resolver atau NTP server iForte:
-
-```cmd
-nslookup iforte.net
-tracert iforte.net
-```
-
-Lihat hop yang masuk ke AS iForte (AS24206) — itu target yang stabil. Tambah monitor:
-
-| Field | Nilai |
-| --- | --- |
-| Nama | iForte Gateway |
-| Tipe | Ping |
-| Host | IP infrastruktur iForte |
-| Interval | 5 menit |
-
-Jika iForte down secara keseluruhan → IP mereka tidak terjangkau dari Astinet → monitor DOWN → notifikasi terkirim.
-
-**Keterbatasan:** hanya membuktikan keterjangkauan dari sisi Astinet ke iForte. Bisa false-positive jika hanya routing antar-ISP yang bermasalah sementara iForte sendiri baik-baik saja.
-
----
-
-#### Opsi B — Push heartbeat dari server/VM yang ada di iForte
-
-Lebih akurat: server di jaringan iForte yang membuktikan dirinya masih bisa keluar ke internet.
-
-1. Di WatchTower: **Dashboard → Tambah Monitor**, pilih tipe **Push**
-2. Isi nama, interval, lalu klik **Generate Token** — token acak otomatis dibuat
-3. URL heartbeat muncul di form, formatnya: `https://monitor.namadomain.com/push/{token}` — salin URL tersebut
-4. Di server iForte: tambah cronjob yang mengirim heartbeat setiap 5 menit:
+## Artisan Commands
 
 ```bash
-*/5 * * * * curl -s --max-time 10 https://monitor.namadomain.com/push/{token} > /dev/null 2>&1
+# Monitor
+php artisan monitor:check                    # Cek semua monitor
+php artisan monitor:check --id=5             # Cek monitor tertentu
+php artisan monitor:check-cron               # Cek heartbeat cron yang terlambat
+php artisan monitor:ssl-check                # Cek SSL semua monitor
+php artisan monitor:check-domain-expiry      # Cek expiry domain
+php artisan monitor:auto-close-incidents     # Auto-close insiden yang sudah UP
+php artisan monitor:simulate 5 down          # Simulasi DOWN monitor ID 5
+php artisan monitor:simulate 5 up            # Simulasi UP monitor ID 5
+php artisan monitor:simulate 5 slow          # Simulasi SLOW monitor ID 5
+
+# Laporan
+php artisan monitor:report --period=daily    # Laporan harian manual
+php artisan monitor:report --period=weekly   # Laporan mingguan manual
+
+# API Health
+php artisan api:health-check                 # Cek semua service API
+php artisan api:health-check --service=bpjs_vclaim
+
+# Utilitas
+php artisan schedule:list                    # Lihat semua jadwal scheduler aktif
 ```
-
-1. Atur **Interval** monitor Push ke `6` menit (sedikit lebih lama dari interval cronjob)
-
-Kalau iForte down → server iForte tidak bisa kirim heartbeat → WatchTower anggap DOWN setelah melewati interval tanpa heartbeat.
-
-**Keunggulan Opsi B:** membuktikan end-to-end — server di iForte benar-benar bisa menjangkau internet (bukan hanya bisa di-ping dari luar).
-
-**Rekomendasi:** pakai keduanya — Opsi A untuk deteksi cepat dari sisi luar, Opsi B untuk konfirmasi bahwa koneksi outbound iForte juga bermasalah.
 
 ---
 
-### Kasus 2 — Monitoring koneksi internet kantor cabang
+## REST API
 
-Kantor cabang tersebar di beberapa kota, masing-masing dengan ISP berbeda. Ingin tahu cabang mana yang koneksinya bermasalah tanpa harus menelepon satu per satu.
-
-**Setup per cabang:**
-
-Di setiap PC/server cabang, buat script yang mengirim heartbeat:
+Akses dengan Bearer token dari menu **API Tokens**:
 
 ```bash
-# Linux/Mac
-*/3 * * * * curl -s https://monitor.namadomain.com/push/<token-cabang> > /dev/null
+# List semua monitor
+curl -H "Authorization: Bearer <token>" https://monitor.namadomain.com/api/monitors
 
-# Windows (Task Scheduler, jalankan tiap 3 menit)
-powershell -Command "Invoke-WebRequest -Uri 'https://monitor.namadomain.com/push/<token>' -UseBasicParsing | Out-Null"
+# Detail monitor
+curl -H "Authorization: Bearer <token>" https://monitor.namadomain.com/api/monitors/1
+
+# Status insiden aktif
+curl -H "Authorization: Bearer <token>" https://monitor.namadomain.com/api/incidents
 ```
 
-Buat satu monitor Push per cabang dengan nama deskriptif:
-
-| Monitor | Cabang |
-| --- | --- |
-| Cabang Surabaya — iForte | Surabaya |
-| Cabang Bandung — Biznet | Bandung |
-| Cabang Medan — Telkom | Medan |
-
-Jika salah satu cabang DOWN → langsung tahu cabang mana tanpa perlu konfirmasi manual.
-
 ---
 
-### Kasus 3 — Monitoring cronjob / backup otomatis
+## Webhook Outbound
 
-Backup database berjalan tiap malam jam 02.00. Ingin notifikasi jika backup tidak berjalan.
-
-1. Tambah monitor tipe **Push** → salin token
-2. Tambah perintah heartbeat di akhir script backup:
-
-```bash
-#!/bin/bash
-# backup.sh
-mysqldump -u root -p database_name > /backup/db_$(date +%Y%m%d).sql.gz
-
-# Kirim heartbeat HANYA jika backup sukses
-if [ $? -eq 0 ]; then
-    curl -s https://monitor.namadomain.com/push/<token> > /dev/null
-fi
-```
-
-1. Set interval monitor Push ke `1500` menit (25 jam) — jika backup tidak jalan sehari, monitor DOWN
-
----
-
-### Kasus 4 — Monitoring ketersediaan BPJS sebelum jam sibuk
-
-BPJS sering tidak bisa diakses pagi hari (07.00–08.00) saat lonjakan traffic. Ingin data historis untuk membuktikan ke manajemen bahwa gangguan bukan dari sisi SIMRS.
-
-**Setup:**
-
-- Gunakan **API Health Dashboard** dengan interval 15–30 menit (setting di **Settings**)
-- Aktifkan notifikasi webhook ke channel Telegram/WA tim IT
-- History log tersimpan otomatis — buka halaman detail monitor untuk lihat grafik response time
-
-Dengan heartbeat bar 90 titik terakhir, bisa langsung tunjukkan ke manajemen pattern gangguan: merah di jam 07.00–08.00, hijau setelahnya.
-
----
-
-### Kasus 5 — Monitoring SSL certificate hampir expired
-
-Server production punya beberapa domain dengan SSL dari provider berbeda. Sering lupa renew.
-
-- Tambah monitor HTTP untuk setiap domain
-- WatchTower cek SSL otomatis via command `monitor:ssl-check` (berjalan 2x sehari jam 08.00 dan 20.00)
-- Notifikasi dikirim jika sisa masa berlaku SSL **≤ 30 hari**
-
-Tidak perlu setup tambahan — cukup monitor HTTP aktif, SSL check berjalan otomatis.
-
----
-
-### Kasus 6 — Monitoring port database yang seharusnya tidak publik
-
-Pastikan port MySQL (3306) atau PostgreSQL (5432) tidak bisa diakses dari internet (misconfiguration firewall).
-
-Tambah monitor tipe **TCP** dari server lain (atau VPS publik) ke IP server database:
-
-| Field | Nilai |
-| --- | --- |
-| Nama | DB Port Check (harus DOWN) |
-| Tipe | TCP |
-| Host | IP publik server database |
-| Port | 3306 |
-
-Jika monitor ini **UP** → firewall bocor, port database terbuka ke publik → segera tutup.
-
-> Ini penggunaan terbalik: monitor yang **seharusnya selalu DOWN**. Jika tiba-tiba UP, itu alert keamanan.
-
----
-
-### Kasus 7 — Status Page untuk klien / manajemen
-
-Tim IT ingin memberikan halaman status real-time ke manajemen atau klien tanpa perlu akses ke dashboard internal.
-
-1. **Status Pages → Buat Status Page**
-2. Tambah section: "Layanan Web", "API BPJS", "Infrastruktur"
-3. Masukkan monitor ke masing-masing section
-4. Bagikan URL `/status/{slug}` ke manajemen atau client
-
-Halaman publik tidak memerlukan login, auto-refresh setiap 60 detik, dan menampilkan heartbeat bar 90 pengecekan terakhir per layanan.
-
----
-
-## Notifikasi
-
-### WhatsApp (Fonnte)
-
-1. Daftar di [fonnte.com](https://fonnte.com), tambah device, scan QR
-2. Salin Token dari halaman device
-3. **Notifikasi → Tambah Channel** → Tipe: `WhatsApp`, isi Token dan Target (format `628xxxxxxxxxx`)
-4. Saat tambah/edit monitor, centang channel ini
-
-Format pesan:
-
-```text
-🔴 *Nama Monitor* is *DOWN*
-URL: https://contoh.com
-Waktu: 12-06-2026 10:30:00
-```
-
-### Telegram Bot
-
-1. Buka Telegram → cari **@BotFather** → `/newbot` → salin Bot Token
-2. Dapatkan Chat ID dengan buka URL berikut di browser:
-
-   ```text
-   https://api.telegram.org/bot<TOKEN>/getUpdates
-   ```
-
-   Cari `"chat":{"id": 123456789}` di response JSON
-3. **Notifikasi → Tambah Channel** → Tipe: `Telegram`, isi Token dan Chat ID
-
-> Untuk grup: tambahkan bot ke grup, gunakan Chat ID grup (diawali `-`).
-
-### Webhook (HTTP POST)
-
-1. **Notifikasi → Tambah Channel** → Tipe: `Webhook`
-2. Isi Webhook URL dan Secret Key (opsional untuk HMAC)
-
-Payload yang dikirim:
+Payload yang dikirim ke channel Webhook:
 
 ```json
 {
@@ -610,24 +350,26 @@ Payload yang dikirim:
   "monitor": {
     "id": 1,
     "name": "SIMRS",
-    "url": "https://simrs.mitraplumbon.com",
+    "url": "https://simrs.example.com",
     "type": "http",
     "status": "down",
     "last_checked_at": "2026-06-12T10:30:00+07:00"
   },
   "timestamp": "2026-06-12T10:30:00+07:00",
-  "message": "🔴 SIMRS is DOWN\nURL: https://simrs.mitraplumbon.com\nWaktu: 12-06-2026 10:30:00"
+  "message": "🔴 SIMRS is DOWN\nURL: https://simrs.example.com\nWaktu: 12-06-2026 10:30:00"
 }
 ```
 
 | Event | Kondisi |
-| --- | --- |
-| `monitor.down` | Monitor terdeteksi DOWN |
-| `monitor.up` | Monitor pulih (recovered) |
-| `monitor.ssl_expiry` | SSL certificate mendekati kedaluwarsa |
+|---|---|
+| `monitor.down` | Monitor DOWN |
+| `monitor.up` | Monitor pulih |
+| `monitor.slow` | Response time melebihi threshold |
+| `monitor.ssl_expiry` | SSL mendekati expired |
+| `monitor.domain_expiry` | Domain mendekati expired |
+| `incident.escalated` | Insiden dieskalasi |
 
-Verifikasi HMAC di sisi penerima:
-
+Verifikasi HMAC (header `X-WatchTower-Signature: sha256=<hmac>`):
 ```php
 $expected = 'sha256=' . hash_hmac('sha256', file_get_contents('php://input'), $secretKey);
 if (!hash_equals($expected, $_SERVER['HTTP_X_WATCHTOWER_SIGNATURE'] ?? '')) {
@@ -635,83 +377,29 @@ if (!hash_equals($expected, $_SERVER['HTTP_X_WATCHTOWER_SIGNATURE'] ?? '')) {
 }
 ```
 
-```python
-import hmac, hashlib
-expected = 'sha256=' + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
-assert hmac.compare_digest(expected, request.headers['X-WatchTower-Signature'])
-```
-
 ---
 
-## Tambah API Service Baru
+## Webhook Inbound
 
-Edit `config/services_custom.php`:
-
-```php
-'nama_service' => [
-    'label'     => 'Nama Service',
-    'base_url'  => env('NAMA_BASE_URL', 'https://api.contoh.com'),
-    'timeout'   => 15,
-    'endpoints' => [
-        ['key' => 'health', 'label' => 'Health Check', 'method' => 'GET', 'path' => '/health'],
-    ],
-],
+Terima alert dari sistem lain (Grafana, Zabbix, Prometheus) ke endpoint:
+```
+POST /webhook-in/{token}
+GET  /webhook-in/{token}     ← Info endpoint + contoh curl
 ```
 
-Set di `.env`:
-
-```env
-NAMA_BASE_URL=https://api.contoh.com
-```
-
-Service langsung muncul di **API Health Dashboard** tanpa restart.
-
----
-
-## BPJS CDN / Non-CDN
-
-| Mode | Host |
-| --- | --- |
-| Non-CDN | `https://apijkn.bpjs-kesehatan.go.id` |
-| CDN | `https://new-apijkn.bpjs-kesehatan.go.id` |
-
-Toggle di halaman **API Health Dashboard**. Saat mode diganti, cache hasil pengecekan dibersihkan otomatis. PCare menggunakan domain tersendiri dan tidak terpengaruh toggle ini.
-
----
-
-## Artisan Commands
-
-```bash
-# Cek semua monitor
-php artisan monitor:check
-
-# Cek monitor tertentu
-php artisan monitor:check --id=1
-
-# Cek semua API health service
-php artisan api:health-check
-
-# Cek service tertentu
-php artisan api:health-check --service=bpjs_vclaim
-
-# Cek SSL certificate semua monitor
-php artisan monitor:ssl-check
-
-# Lihat jadwal scheduler aktif
-php artisan schedule:list
-```
+Buat receiver di menu **Webhook In**, salin token, arahkan alert eksternal ke URL tersebut.
 
 ---
 
 ## Catatan Keamanan
 
-Aplikasi ini **tidak menyimpan** credential apapun (cons\_id, secret\_key, client\_id, client\_secret, token API BPJS/Satu Sehat). Fungsinya hanya mengecek konektivitas jaringan ke endpoint — bukan mengintegrasikan atau mengakses data dari layanan tersebut.
+Aplikasi ini **tidak menyimpan** credential apapun (cons_id, secret_key, client_id, client_secret, token API BPJS/Satu Sehat). Fungsinya hanya mengecek konektivitas jaringan ke endpoint — bukan mengintegrasikan atau mengakses data dari layanan tersebut.
 
 ---
 
 ## Struktur Docker
 
-```text
+```
 uptime-monitor/
 ├── Dockerfile                  ← PHP 8.2-fpm Alpine + Nginx + Supervisor
 ├── docker-compose.yml          ← App + MySQL 8.0 (opsional)
@@ -720,6 +408,12 @@ uptime-monitor/
     ├── nginx.conf
     └── supervisord.conf        ← php-fpm + nginx + scheduler
 ```
+
+---
+
+## Dokumentasi Lanjutan
+
+- [PANDUAN.md](PANDUAN.md) — cara penggunaan lengkap semua fitur
 
 ---
 

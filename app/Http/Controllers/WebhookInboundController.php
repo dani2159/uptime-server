@@ -28,6 +28,13 @@ class WebhookInboundController extends Controller
         return redirect()->route('webhook-inbound.index')->with('success', 'Webhook receiver dibuat.');
     }
 
+    public function info(string $token)
+    {
+        $receiver = \App\Models\WebhookInboundEvent::where('token', $token)->firstOrFail();
+        $url = url("/webhook-in/{$token}");
+        return response(view('webhook-inbound.info', compact('receiver', 'url')));
+    }
+
     public function receive(Request $request, string $token)
     {
         $receiver = \App\Models\WebhookInboundEvent::where('token', $token)->where('is_active', true)->firstOrFail();

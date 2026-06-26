@@ -54,14 +54,14 @@
                  } catch { this.checking = false; }
              }
          }">
-        <form method="POST" action="{{ route('monitors.toggle', $monitor) }}">
+        <form method="POST" action="{{ route('monitors.toggle', $monitor) }}" class="contents">
             @csrf @method('PATCH')
             <button type="submit"
-                    class="text-xs px-3 py-2 rounded-lg border font-semibold transition-colors
+                    class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border font-semibold transition-colors
                         {{ $monitor->is_active
                             ? 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-500 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600'
                             : 'border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-100' }}">
-                <i class="fa-solid {{ $monitor->is_active ? 'fa-pause' : 'fa-play' }} text-[10px] mr-1"></i>
+                <i class="fa-solid {{ $monitor->is_active ? 'fa-pause' : 'fa-play' }} text-[10px]"></i>
                 {{ $monitor->is_active ? 'Pause' : 'Resume' }}
             </button>
         </form>
@@ -78,6 +78,21 @@
            class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 font-semibold transition-colors">
             <i class="fa-solid fa-pen-to-square text-[10px]"></i> Edit
         </a>
+
+        {{-- Clone --}}
+        <form method="POST" action="{{ route('monitors.clone', $monitor) }}" onsubmit="return confirm('Duplikat monitor ini?')">
+            @csrf
+            <button type="submit"
+                    class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 font-semibold transition-colors">
+                <i class="fa-solid fa-copy text-[10px]"></i> Clone
+            </button>
+        </form>
+
+        {{-- Silence --}}
+        <button onclick="silenceMonitor({{ $monitor->id }}, '{{ addslashes($monitor->name) }}')"
+                class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-semibold transition-colors">
+            <i class="fa-solid fa-bell-slash text-[10px]"></i> Silence
+        </button>
     </div>
 </div>
 
@@ -340,6 +355,27 @@ if (history.length) {
             },
         },
     });
+}
+
+async function silenceMonitor(id, name) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const { value: dur } = await Swal.fire({
+        title: `Silence "${name}"`,
+        input: 'select',
+        inputOptions: { '1h': '1 jam', '4h': '4 jam', '24h': '24 jam' },
+        inputPlaceholder: 'Pilih durasi',
+        showCancelButton: true, cancelButtonText: 'Batal',
+        background: isDark ? '#1e293b' : '#fff',
+        color: isDark ? '#e2e8f0' : '#111827',
+    });
+    if (!dur) return;
+    const r = await fetch(`/monitors/${id}/silence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+        body: JSON.stringify({ duration: dur }),
+    });
+    const d = await r.json();
+    Swal.fire({ icon: 'success', title: 'Disilence!', text: `Notifikasi diam hingga ${d.end_at}`, toast: true, position: 'top-end', timer: 4000, showConfirmButton: false, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#e2e8f0' : '#111827' });
 }
 </script>
 @endpush

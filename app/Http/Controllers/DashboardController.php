@@ -38,7 +38,7 @@ class DashboardController extends Controller
         $monitors = $sidebarQuery->get();
         $allTags  = Tag::orderBy('name')->get();
 
-        // Reuse already-loaded collection for stats (avoid second Monitor::all() query)
+        
         $statsBase = ($search || $tagFilter)
             ? Monitor::selectRaw('last_status, count(*) as cnt')->groupBy('last_status')->pluck('cnt', 'last_status')
             : $monitors->groupBy('last_status')->map->count();
@@ -120,7 +120,7 @@ class DashboardController extends Controller
                         'status'     => 'open',
                     ]);
                 }
-                // Explicit notify: selalu kirim. Auto (cron): hanya kirim jika baru down
+               
                 if ($withNotify || ($previousStatus !== 'down' && !$hasOpenIncident)) {
                     $notifier->notifyDown($monitor);
                     $results['notified']++;

@@ -37,6 +37,7 @@ Route::get('/events/monitors', [StatusPageController::class, 'stream'])->name('m
 Route::get('/api/status-poll', [StatusPageController::class, 'statusPoll'])->name('monitors.poll');
 
 // Webhook inbound receiver (public endpoint per token)
+Route::get('/webhook-in/{token}', [WebhookInboundController::class, 'info'])->name('webhook-inbound.info');
 Route::post('/webhook-in/{token}', [WebhookInboundController::class, 'receive'])->name('webhook-inbound.receive');
 
 // Telegram chatbot webhook

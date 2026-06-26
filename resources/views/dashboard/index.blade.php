@@ -241,7 +241,7 @@
 
         {{-- Aksi --}}
         <div class="flex items-center gap-2 flex-shrink-0">
-            <form method="POST" action="{{ route('monitors.toggle', $selected) }}">
+            <form method="POST" action="{{ route('monitors.toggle', $selected) }}" class="contents">
                 @csrf @method('PATCH')
                 <button type="submit"
                         class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border font-semibold transition-colors
@@ -525,22 +525,42 @@
                 <select x-model="form.type"
                         @change="onTypeChange()"
                         class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
-                    <option value="http">HTTP(S) — Cek URL</option>
-                    <option value="keyword">Keyword — Cari teks dalam respons</option>
-                    <option value="ping">Ping — ICMP ping ke host</option>
-                    <option value="tcp">TCP Port — Cek port terbuka</option>
-                    <option value="dns">DNS — Resolve domain</option>
-                    <option value="push">Push — Terima heartbeat</option>
+                    <optgroup label="Web">
+                        <option value="http">HTTP(S) — Cek URL</option>
+                        <option value="keyword">Keyword — Cari teks dalam respons</option>
+                    </optgroup>
+                    <optgroup label="Infrastruktur">
+                        <option value="ping">Ping — ICMP ke host</option>
+                        <option value="tcp">TCP Port — Cek port terbuka</option>
+                        <option value="dns">DNS — Resolve domain</option>
+                        <option value="docker">Docker Container</option>
+                    </optgroup>
+                    <optgroup label="Database">
+                        <option value="database">Database (MySQL/PgSQL/Redis)</option>
+                    </optgroup>
+                    <optgroup label="Domain">
+                        <option value="whois">WHOIS / Domain Expiry</option>
+                    </optgroup>
+                    <optgroup label="Heartbeat">
+                        <option value="push">Push Heartbeat</option>
+                        <option value="cron">Cron Job Monitor</option>
+                    </optgroup>
                 </select>
             </div>
 
-            {{-- URL field (http, keyword, ping, dns) --}}
-            <div x-show="['http','keyword','ping','dns'].includes(form.type)">
+            {{-- URL field: http, keyword, ping, dns, database, docker, whois --}}
+            <div x-show="!['tcp','push','cron'].includes(form.type)">
                 <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">
-                    URL / Host <span class="text-red-400">*</span>
+                    <span x-text="{http:'URL',keyword:'URL',ping:'Hostname / IP',dns:'Domain',database:'Connection String',docker:'Container / Socket',whois:'Domain'}[form.type] ?? 'URL'"></span>
+                    <span class="text-red-400">*</span>
                 </label>
                 <input type="text" x-model="form.url"
-                       :placeholder="form.type === 'ping' ? 'Mis: 8.8.8.8 atau google.com' : (form.type === 'dns' ? 'Mis: https://google.com' : 'https://example.com')"
+                       :placeholder="{
+                           http:'https://example.com',keyword:'https://example.com',
+                           ping:'8.8.8.8 atau google.com',dns:'example.com',
+                           database:'mysql://user:pass@host:3306/db',
+                           docker:'container_name',whois:'example.com'
+                       }[form.type] ?? 'https://example.com'"
                        class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 placeholder-sky-300 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
                 <p x-show="errors.url" x-text="errors.url?.[0]" class="text-red-500 dark:text-red-400 text-xs mt-1"></p>
             </div>
@@ -603,6 +623,49 @@
                         <i class="fa-solid fa-copy"></i>
                     </button>
                 </p>
+            </div>
+
+            {{-- Cron Monitor --}}
+            <div x-show="form.type === 'cron'" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Push Token (Heartbeat)</label>
+                    <div class="flex gap-2">
+                        <input type="text" x-model="form.push_token" placeholder="Token otomatis"
+                               class="flex-1 px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 placeholder-sky-300 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700 font-mono">
+                        <button type="button" @click="form.push_token = Math.random().toString(36).substring(2) + Date.now().toString(36)"
+                                class="px-3 py-2 text-xs bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-xl border border-sky-200 dark:border-sky-700 hover:bg-sky-200 font-semibold whitespace-nowrap transition-colors">
+                            <i class="fa-solid fa-dice mr-1"></i>Generate
+                        </button>
+                    </div>
+                    <p class="text-xs text-indigo-500 dark:text-indigo-400 mt-1">
+                        Panggil: <code class="bg-indigo-50 dark:bg-indigo-900/30 px-1 rounded">{{ rtrim(config('app.url'), '/') }}/push/<span x-text="form.push_token || '{token}'"></span></code>
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Heartbeat Interval (menit)</label>
+                    <input type="number" x-model="form.heartbeat_interval" min="1" placeholder="60"
+                           class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">DOWN jika tidak ada ping selama N menit</p>
+                </div>
+            </div>
+
+            {{-- WHOIS: alert days --}}
+            <div x-show="form.type === 'whois'">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Alert X hari sebelum expired</label>
+                <input type="number" x-model="form.domain_expiry_alert_days" min="1" max="365" placeholder="30"
+                       class="w-full px-3 py-2 text-sm bg-sky-50 dark:bg-slate-700 border border-sky-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-700">
+            </div>
+
+            {{-- Database: info --}}
+            <div x-show="form.type === 'database'" class="text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-900/40 rounded-xl p-3">
+                <i class="fa-solid fa-circle-info text-sky-400 mr-1"></i>
+                Format connection string: <code class="text-sky-600 dark:text-sky-400">mysql://user:pass@host:3306/db</code> · <code>pgsql://...</code> · <code>redis://host:6379</code>
+            </div>
+
+            {{-- Docker: info --}}
+            <div x-show="form.type === 'docker'" class="text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-900/40 rounded-xl p-3">
+                <i class="fa-solid fa-circle-info text-sky-400 mr-1"></i>
+                Masukkan nama container atau path socket Docker (<code>unix:///var/run/docker.sock</code>). Untuk remote gunakan <code>http://host:2375</code>.
             </div>
 
             {{-- Interval + Timeout + Retry --}}
@@ -927,11 +990,12 @@ function monitorModal() {
             keyword: '', tcp_host: '', tcp_port: '',
             push_token: '', dns_resolve_type: 'A', dns_expected_value: '',
             notification_channels: [], tags: [], response_time_warning: '',
+            heartbeat_interval: 60, domain_expiry_alert_days: 30,
         },
 
         onTypeChange() {
-            const placeholders = ['push://heartbeat', 'tcp://placeholder'];
-            if (['http','keyword','ping','dns'].includes(this.form.type) && placeholders.includes(this.form.url)) {
+            const placeholders = ['push://heartbeat', 'tcp://placeholder', 'cron://heartbeat'];
+            if (!['tcp','push','cron'].includes(this.form.type) && placeholders.includes(this.form.url)) {
                 this.form.url = '';
             }
         },
@@ -959,6 +1023,8 @@ function monitorModal() {
                     notification_channels: (m.notification_channels ?? []).map(String),
                     tags: (m.tags ?? []).map(String),
                     response_time_warning: m.response_time_warning ?? '',
+                    heartbeat_interval: m.heartbeat_interval ?? 60,
+                    domain_expiry_alert_days: m.domain_expiry_alert_days ?? 30,
                 };
             } else {
                 this.mode = 'create';
@@ -968,6 +1034,7 @@ function monitorModal() {
                     keyword: '', tcp_host: '', tcp_port: '',
                     push_token: '', dns_resolve_type: 'A', dns_expected_value: '',
                     notification_channels: [], tags: [], response_time_warning: '',
+                    heartbeat_interval: 60, domain_expiry_alert_days: 30,
                 };
             }
             this.open = true;
@@ -976,6 +1043,7 @@ function monitorModal() {
         get effectiveUrl() {
             if (this.form.type === 'tcp') return 'tcp://placeholder';
             if (this.form.type === 'push') return 'push://heartbeat';
+            if (this.form.type === 'cron') return 'cron://heartbeat';
             return this.form.url;
         },
 
@@ -993,7 +1061,9 @@ function monitorModal() {
             body.set('retry_count', this.form.retry_count);
             if (this.form.type === 'keyword') body.set('keyword', this.form.keyword);
             if (this.form.type === 'tcp') { body.set('tcp_host', this.form.tcp_host); body.set('tcp_port', this.form.tcp_port); }
-            if (this.form.type === 'push') body.set('push_token', this.form.push_token);
+            if (['push','cron'].includes(this.form.type)) body.set('push_token', this.form.push_token);
+            if (this.form.type === 'cron') body.set('heartbeat_interval', this.form.heartbeat_interval);
+            if (this.form.type === 'whois') body.set('domain_expiry_alert_days', this.form.domain_expiry_alert_days);
             if (this.form.type === 'dns') { body.set('dns_resolve_type', this.form.dns_resolve_type); body.set('dns_expected_value', this.form.dns_expected_value); }
             this.form.notification_channels.forEach(id => body.append('notification_channels[]', id));
             this.form.tags.forEach(id => body.append('tags[]', id));

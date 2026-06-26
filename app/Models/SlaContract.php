@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SlaContract extends Model
 {
-    protected $fillable = ['monitor_id', 'name', 'target_uptime', 'max_downtime_seconds', 'period', 'is_active'];
-    protected $casts    = ['is_active' => 'boolean', 'target_uptime' => 'decimal:2'];
+    protected $fillable = ['monitor_id', 'name', 'target_uptime', 'period_start', 'period_end', 'downtime_budget_min', 'notes', 'max_downtime_seconds', 'period', 'is_active'];
+    protected $casts    = ['is_active' => 'boolean', 'target_uptime' => 'decimal:2', 'period_start' => 'date', 'period_end' => 'date'];
     public function monitor(): BelongsTo { return $this->belongsTo(Monitor::class); }
 }

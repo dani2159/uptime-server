@@ -1,7 +1,7 @@
 @php
     $val = fn($field, $default = '') => old($field, $monitor?->$field ?? $default);
-    $inp = 'w-full border border-sky-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white';
-    $lbl = 'block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide';
+    $inp = 'w-full border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300 dark:focus:ring-sky-900 focus:border-sky-400 bg-white dark:bg-slate-900';
+    $lbl = 'block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide';
 @endphp
 
 <div>
@@ -62,12 +62,27 @@
         </div>
     </div>
 
-    {{-- URL: untuk http, keyword, ping --}}
-    <div x-show="type !== 'tcp' && type !== 'push' && type !== 'dns'" class="mb-4">
-        <label class="{{ $lbl }}">URL</label>
-        <input type="text" name="url" value="{{ $val('url') }}"
-               :disabled="type === 'tcp' || type === 'push' || type === 'dns'"
-               class="{{ $inp }}" placeholder="https://example.com">
+    {{-- URL dinamis: http, keyword, ping, database, docker, whois --}}
+    <div x-show="!['tcp','push','dns','cron'].includes(type)" class="mb-4">
+        <label class="{{ $lbl }}">
+            <span x-text="{
+                http:'URL',keyword:'URL',ping:'Hostname / IP',
+                database:'Connection String',docker:'Container / Socket',whois:'Domain'
+            }[type] ?? 'URL'"></span>
+        </label>
+        <input type="text" name="url" value="{{ $val('url') }}" class="{{ $inp }}"
+               :placeholder="{
+                   http:'https://example.com',
+                   keyword:'https://example.com',
+                   ping:'8.8.8.8 atau google.com',
+                   database:'mysql://user:pass@host:3306/dbname',
+                   docker:'container_name atau unix:///var/run/docker.sock',
+                   whois:'example.com'
+               }[type] ?? 'https://example.com'">
+        <p x-show="type === 'ping'" class="text-xs text-gray-400 dark:text-slate-500 mt-1">IP address atau hostname tanpa http://</p>
+        <p x-show="type === 'database'" class="text-xs text-gray-400 dark:text-slate-500 mt-1">Format: driver://user:pass@host:port/database · Driver: mysql, pgsql, redis</p>
+        <p x-show="type === 'docker'" class="text-xs text-gray-400 dark:text-slate-500 mt-1">Nama container atau path socket Docker. Remote: http://host:2375</p>
+        <p x-show="type === 'whois'" class="text-xs text-gray-400 dark:text-slate-500 mt-1">Domain tanpa http://. Alert jika expiry &lt; threshold hari.</p>
         @error('url')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
 
@@ -76,7 +91,14 @@
         <label class="{{ $lbl }}">Keyword</label>
         <input type="text" name="keyword" value="{{ $val('keyword') }}"
                class="{{ $inp }}" placeholder="Teks yang harus ada di body response">
-        <p class="text-xs text-sky-500 mt-1">Monitor UP jika keyword ditemukan</p>
+        <p class="text-xs text-sky-500 dark:text-sky-400 mt-1">Monitor UP jika keyword ditemukan</p>
+    </div>
+
+    {{-- WHOIS expiry threshold --}}
+    <div x-show="type === 'whois'" class="mb-4">
+        <label class="{{ $lbl }}">Alert X hari sebelum expired</label>
+        <input type="number" name="domain_expiry_alert_days" value="{{ $val('domain_expiry_alert_days', 30) }}"
+               min="1" max="365" class="{{ $inp }}" placeholder="30">
     </div>
 
     {{-- TCP --}}
@@ -104,7 +126,7 @@
                 <label class="{{ $lbl }}">Domain</label>
                 <input type="text" name="url" value="{{ $val('url') }}"
                        :disabled="type !== 'dns'"
-                       class="{{ $inp }}" placeholder="https://example.com">
+                       class="{{ $inp }}" placeholder="example.com">
             </div>
             <div>
                 <label class="{{ $lbl }}">Record Type</label>
@@ -124,18 +146,40 @@
 
     {{-- Push Heartbeat --}}
     <div x-show="type === 'push'" class="mb-4">
-        <div class="bg-sky-50 border border-sky-200 rounded-xl p-4">
+        <div class="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl p-4">
             <label class="{{ $lbl }}">Push Token</label>
             <input type="text" name="push_token" value="{{ $val('push_token', \Illuminate\Support\Str::random(32)) }}"
                    class="{{ $inp }} font-mono" placeholder="Token otomatis">
-            <p class="text-xs text-sky-600 mt-2">
+            <p class="text-xs text-sky-600 dark:text-sky-400 mt-2">
                 Kirim GET ke:
-                <code class="bg-sky-100 px-1.5 py-0.5 rounded text-sky-700">{{ url('/push/') }}/[token]</code>
-                dari cron eksternal
+                <code class="bg-sky-100 dark:bg-sky-900/40 px-1.5 py-0.5 rounded text-sky-700 dark:text-sky-300">{{ url('/push/') }}/[token]</code>
             </p>
         </div>
         <input type="hidden" name="url" value="{{ $val('url', 'push://heartbeat') }}"
                :disabled="type !== 'push'">
+    </div>
+
+    {{-- Cron Job Monitor --}}
+    <div x-show="type === 'cron'" class="mb-4">
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 space-y-3">
+            <div>
+                <label class="{{ $lbl }}">Push Token (Heartbeat URL)</label>
+                <input type="text" name="push_token" value="{{ $val('push_token', \Illuminate\Support\Str::random(32)) }}"
+                       class="{{ $inp }} font-mono" placeholder="Token otomatis">
+                <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
+                    Panggil URL ini di akhir cron job:
+                    <code class="bg-indigo-100 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded">{{ url('/push/') }}/[token]</code>
+                </p>
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Heartbeat Interval (menit)</label>
+                <input type="number" name="heartbeat_interval" value="{{ $val('heartbeat_interval', 60) }}"
+                       min="1" class="{{ $inp }}" placeholder="60">
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">DOWN jika tidak ada ping selama N menit</p>
+            </div>
+        </div>
+        <input type="hidden" name="url" value="{{ $val('url', 'cron://heartbeat') }}"
+               :disabled="type !== 'cron'">
     </div>
 </div>
 
@@ -180,7 +224,7 @@
 {{-- ====== ADVANCED v2 Fields ====== --}}
 <div x-data="{ advOpen: false }">
     <button type="button" @click="advOpen = !advOpen"
-        class="flex items-center gap-2 text-sm text-sky-400 hover:text-sky-300 mt-2">
+        class="flex items-center gap-2 text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 mt-2">
         <i class="fa fa-chevron-right transition-transform" :class="advOpen ? 'rotate-90' : ''"></i>
         <span x-text="advOpen ? 'Sembunyikan pengaturan lanjutan' : 'Tampilkan pengaturan lanjutan (HTTP Auth, Body Assertion, Flap, dll)'"></span>
     </button>
@@ -188,8 +232,8 @@
     <div x-show="advOpen" x-transition class="mt-4 space-y-4">
 
         {{-- Notes & Runbook --}}
-        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Catatan & Runbook</h4>
+        <div class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Catatan & Runbook</h4>
             <div>
                 <label class="{{ $lbl }}">Notes</label>
                 <textarea name="notes" rows="2" class="{{ $inp }} font-mono text-xs"
@@ -211,8 +255,8 @@
         </div>
 
         {{-- HTTP Advanced --}}
-        <div x-show="type === 'http' || type === 'keyword'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">HTTP Lanjutan</h4>
+        <div x-show="type === 'http' || type === 'keyword'" class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">HTTP Lanjutan</h4>
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="{{ $lbl }}">HTTP Method</label>
@@ -270,11 +314,11 @@
             <div class="flex gap-4 text-sm">
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="ignore_tls_error" value="1" {{ $val('ignore_tls_error') ? 'checked' : '' }} class="rounded">
-                    <span class="text-slate-300">Abaikan error TLS/SSL</span>
+                    <span class="text-gray-700 dark:text-slate-300">Abaikan error TLS/SSL</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="follow_redirects" value="1" {{ $val('follow_redirects',true) ? 'checked' : '' }} class="rounded">
-                    <span class="text-slate-300">Ikuti redirect</span>
+                    <span class="text-gray-700 dark:text-slate-300">Ikuti redirect</span>
                 </label>
             </div>
             <div class="grid grid-cols-3 gap-3">
@@ -294,8 +338,8 @@
         </div>
 
         {{-- Body Assertion --}}
-        <div x-show="type === 'http' || type === 'keyword'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Body Assertion (JSON Path)</h4>
+        <div x-show="type === 'http' || type === 'keyword'" class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Body Assertion (JSON Path)</h4>
             <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="{{ $lbl }}">JSON Path</label>
@@ -324,21 +368,21 @@
         </div>
 
         {{-- Cron/Heartbeat --}}
-        <div x-show="type === 'cron' || type === 'push'" class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Heartbeat / Cron</h4>
+        <div x-show="type === 'cron' || type === 'push'" class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Heartbeat / Cron</h4>
             <div>
                 <label class="{{ $lbl }}">Expected Interval (menit)</label>
                 <input type="number" name="heartbeat_interval" value="{{ $val('heartbeat_interval',60) }}" min="1" class="{{ $inp }}">
-                <p class="text-xs text-slate-500 mt-1">Monitor DOWN jika tidak menerima ping dalam N menit ini</p>
+                <p class="text-xs text-gray-500 dark:text-slate-500 mt-1">Monitor DOWN jika tidak menerima ping dalam N menit ini</p>
             </div>
         </div>
 
         {{-- Flap Detection --}}
-        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Flap Detection</h4>
+        <div class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4 space-y-3">
+            <h4 class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Flap Detection</h4>
             <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" name="flap_detection" value="1" {{ $val('flap_detection') ? 'checked' : '' }} class="rounded">
-                <span class="text-slate-300 text-sm">Aktifkan flap detection (tahan notif jika UP-DOWN bergantian)</span>
+                <span class="text-gray-700 dark:text-slate-300 text-sm">Aktifkan flap detection (tahan notif jika UP-DOWN bergantian)</span>
             </label>
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -353,12 +397,12 @@
         </div>
 
         {{-- Latency Trend --}}
-        <div class="bg-slate-900/40 dark:bg-slate-900/60 rounded-xl p-4">
+        <div class="bg-gray-50 dark:bg-slate-900/60 rounded-xl p-4">
             <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" name="latency_trend_alert" value="1" {{ $val('latency_trend_alert') ? 'checked' : '' }} class="rounded">
                 <div>
-                    <span class="text-slate-300 text-sm font-medium">Latency Trend Alert</span>
-                    <p class="text-xs text-slate-500">Kirim peringatan jika response time naik konsisten 5 cek berturut-turut</p>
+                    <span class="text-gray-700 dark:text-slate-300 text-sm font-medium">Latency Trend Alert</span>
+                    <p class="text-xs text-gray-500 dark:text-slate-500">Kirim peringatan jika response time naik konsisten 5 cek berturut-turut</p>
                 </div>
             </label>
         </div>
