@@ -19,6 +19,9 @@ class CheckMonitors extends Command
     protected $signature = 'monitor:check {--id= : Check specific monitor by ID}';
     protected $description = 'Run uptime checks for all active monitors';
 
+    private array $batchDown = [];
+    private array $batchUp   = [];
+
     public function __construct(
         private UptimeChecker $checker,
         private DnsResolver $resolver,
@@ -64,6 +67,10 @@ class CheckMonitors extends Command
             $this->line("  {$icon} [{$monitor->name}] {$result['status']} — {$result['response_time']}ms");
         }
 
+        // Kirim notifikasi batch — 1 pesan per channel meski banyak monitor berubah status
+        $this->notifier->sendBatchDown($this->batchDown);
+        $this->notifier->sendBatchUp($this->batchUp);
+
         return self::SUCCESS;
     }
 
@@ -90,8 +97,8 @@ class CheckMonitors extends Command
             $monitor->update(['current_retries' => 0]);
 
             if ($wasConfirmedDown && !$inMaintenance) {
-                $this->notifier->notifyRecovered($monitor);
                 $this->closeIncident($monitor);
+                $this->batchUp[] = $monitor;
             }
             return;
         }
@@ -102,8 +109,8 @@ class CheckMonitors extends Command
 
         // Notif hanya saat pertama kali retries mencapai threshold (bukan setiap check)
         if ($newRetries >= $monitor->retry_count && !$inMaintenance) {
-            $this->notifier->notifyDown($monitor);
             $this->openIncident($monitor);
+            $this->batchDown[] = $monitor;
         } elseif ($newRetries < $monitor->retry_count) {
             // Rapid recheck: cek ulang dalam 20 detik
             RecheckMonitorJob::dispatch($monitor->id)->delay(now()->addSeconds(20));

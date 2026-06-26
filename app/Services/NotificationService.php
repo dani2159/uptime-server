@@ -21,6 +21,84 @@ class NotificationService
         $this->dispatch($monitor, 'UP');
     }
 
+    public function sendBatchDown(array $monitors): void
+    {
+        if (empty($monitors)) return;
+
+        if (count($monitors) === 1) {
+            $this->dispatch($monitors[0], 'DOWN');
+            return;
+        }
+
+        $time  = now()->format('d-m-Y H:i:s');
+        $count = count($monitors);
+        $lines = ["🔴 <b>{$count} Monitor DOWN</b>", "Waktu: {$time}", ""];
+        foreach ($monitors as $m) {
+            $lines[] = "• <b>{$m->name}</b> — " . ($m->url ?: '-');
+        }
+
+        $htmlMsg  = implode("\n", $lines);
+        $plainMsg = strip_tags($htmlMsg);
+        $this->sendToMergedChannels($monitors, 'monitor.batch_down', $htmlMsg, $plainMsg);
+    }
+
+    public function sendBatchUp(array $monitors): void
+    {
+        if (empty($monitors)) return;
+
+        if (count($monitors) === 1) {
+            $this->dispatch($monitors[0], 'UP');
+            return;
+        }
+
+        $time  = now()->format('d-m-Y H:i:s');
+        $count = count($monitors);
+        $lines = ["🟢 <b>{$count} Monitor UP kembali</b>", "Waktu: {$time}", ""];
+        foreach ($monitors as $m) {
+            $incident = Incident::where('monitor_id', $m->id)
+                ->where('status', 'closed')
+                ->latest('resolved_at')
+                ->first();
+            $dur = '';
+            if ($incident?->duration_seconds) {
+                $s   = $incident->duration_seconds;
+                $dur = ' (down ' . ($s >= 3600 ? floor($s / 3600) . 'j ' : '')
+                     . ($s >= 60 ? floor(($s % 3600) / 60) . 'm ' : '')
+                     . ($s % 60) . 'd)';
+            }
+            $lines[] = "• <b>{$m->name}</b> — " . ($m->url ?: '-') . $dur;
+        }
+
+        $htmlMsg  = implode("\n", $lines);
+        $plainMsg = strip_tags($htmlMsg);
+        $this->sendToMergedChannels($monitors, 'monitor.batch_up', $htmlMsg, $plainMsg);
+    }
+
+    private function sendToMergedChannels(array $monitors, string $event, string $htmlMsg, string $plainMsg): void
+    {
+        // Kumpulkan semua channel_id unik dari semua monitor yang terlibat
+        $allChannelIds = collect($monitors)
+            ->flatMap(fn($m) => $m->notification_channels ?? [])
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($allChannelIds)) return;
+
+        $channels = NotificationChannel::whereIn('id', $allChannelIds)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($channels as $channel) {
+            match ($channel->type) {
+                'telegram' => $this->sendTelegram($channel, $htmlMsg),
+                'whatsapp' => $this->sendFonnte($channel, $plainMsg),
+                'webhook'  => $this->sendWebhook($channel, $monitors[0], $event, $plainMsg),
+                default    => null,
+            };
+        }
+    }
+
     public function notifySlow(Monitor $monitor): void
     {
         $vars = [
