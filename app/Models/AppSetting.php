@@ -22,33 +22,21 @@ class AppSetting extends Model
         static::updateOrCreate(['key' => $key], ['value' => $value]);
     }
 
-    // Default templates — used when no DB value exists
     public static function defaults(): array
     {
         return [
             'notif_down_body' =>
-                "🔴 <b>{name}</b> is DOWN\n" .
-                "URL: {url}\n" .
-                "Waktu: {timestamp}",
-
+                "🔴 <b>{name}</b> is DOWN\nURL: {url}\nWaktu: {timestamp}",
             'notif_recovered_body' =>
-                "🟢 <b>{name}</b> is UP kembali\n" .
-                "URL: {url}\n" .
-                "Durasi down: {duration}\n" .
-                "Waktu: {timestamp}",
-
+                "🟢 <b>{name}</b> is UP kembali\nURL: {url}\nDurasi down: {duration}\nWaktu: {timestamp}",
             'notif_slow_body' =>
-                "🟡 <b>{name}</b> LAMBAT\n" .
-                "URL: {url}\n" .
-                "Response: <b>{response_time}</b> (batas: {threshold}ms)\n" .
-                "Waktu: {timestamp}",
-
+                "🟡 <b>{name}</b> LAMBAT\nURL: {url}\nResponse: <b>{response_time}</b> (batas: {threshold}ms)\nWaktu: {timestamp}",
             'notif_escalation_body' =>
-                "🚨 <b>ESKALASI: {name}</b> masih DOWN\n" .
-                "URL: {url}\n" .
-                "Sudah down selama: <b>{duration}</b>\n" .
-                "Aturan: {rule}\n" .
-                "Waktu: {timestamp}",
+                "🚨 <b>ESKALASI: {name}</b> masih DOWN\nURL: {url}\nSudah down selama: <b>{duration}</b>\nAturan: {rule}\nWaktu: {timestamp}",
+            // v2 defaults
+            'incident_auto_close_minutes'   => '0',
+            'notif_business_hours_only'     => '0',
+            'correlated_incident_threshold' => '5',
         ];
     }
 }
