@@ -1028,4 +1028,44 @@ function monitorModal() {
     };
 }
 </script>
+
+@push('scripts')
+<script>
+// SSE live update — dashboard only
+(function() {
+    const SSE_URL = '{{ route('monitors.sse') }}';
+    let conn = null;
+    let prev = {};
+
+    function applyData(data) {
+        try {
+            let anyDown = false;
+            Object.entries(data).forEach(([id, mon]) => {
+                document.querySelectorAll(`[data-monitor-id="${id}"]`).forEach(el => {
+                    if (el.dataset.field === 'status') {
+                        el.textContent = mon.status.toUpperCase();
+                        el.className = el.className.replace(/text-(red|emerald|amber|slate)-\d+/g, '');
+                        el.classList.add(mon.status === 'up' ? 'text-emerald-400' : mon.status === 'down' ? 'text-red-400' : 'text-amber-400');
+                    }
+                    if (el.dataset.field === 'rt')    el.textContent = mon.rt ? mon.rt + 'ms' : '-';
+                    if (el.dataset.field === 'score') el.textContent = mon.score ?? '-';
+                });
+                if (mon.status === 'down') anyDown = true;
+                if (prev[id] && prev[id] !== mon.status && mon.status === 'down') window.wtSound?.play();
+                prev[id] = mon.status;
+            });
+            anyDown ? window.wtFavicon?.red() : window.wtFavicon?.normal();
+        } catch(e) {}
+    }
+
+    function connect() {
+        if (conn) conn.close();
+        conn = new EventSource(SSE_URL);
+        conn.onmessage = e => applyData(JSON.parse(e.data));
+        conn.addEventListener('done', () => { conn.close(); setTimeout(connect, 2000); });
+        conn.onerror = () => { conn.close(); setTimeout(connect, 5000); };
+    }
+    connect();
+})();
+</script>
 @endpush

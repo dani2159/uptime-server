@@ -169,7 +169,18 @@ class StatusPageController extends Controller
 
     public function showByDomain(\Illuminate\Http\Request $request)
     {
+        // Skip DB lookup for static asset paths — avoids unnecessary query on 404 requests
+        $path = $request->path();
+        if (preg_match('/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|map)$/i', $path)) {
+            abort(404);
+        }
+
         $host = $request->getHost();
+        // Only attempt custom-domain lookup for non-localhost hosts
+        if (in_array($host, ['localhost', '127.0.0.1', '::1'])) {
+            abort(404);
+        }
+
         $page = StatusPage::where('custom_domain', $host)->where('is_public', true)->first();
         if (!$page) {
             abort(404);
