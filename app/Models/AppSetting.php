@@ -11,15 +11,25 @@ class AppSetting extends Model
     public    $incrementing = false;
     protected $fillable   = ['key', 'value'];
 
+    protected static array $cache = [];
+
     public static function get(string $key, mixed $default = null): mixed
     {
-        $row = static::find($key);
-        return $row ? $row->value : $default;
+        if (!array_key_exists($key, static::$cache)) {
+            static::$cache[$key] = static::find($key)?->value;
+        }
+        return static::$cache[$key] ?? $default;
     }
 
     public static function set(string $key, mixed $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
+        static::$cache[$key] = $value;
+    }
+
+    public static function clearCache(): void
+    {
+        static::$cache = [];
     }
 
     public static function defaults(): array

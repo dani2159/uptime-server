@@ -90,7 +90,7 @@ class Monitor extends Model
 
     public function heartbeatLogs(): HasMany
     {
-        return $this->hasMany(MonitorLog::class)->latest('checked_at')->limit(90);
+        return $this->hasMany(MonitorLog::class)->latest('checked_at')->limit(20);
     }
 
     public function slaContracts(): HasMany

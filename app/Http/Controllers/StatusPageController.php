@@ -227,27 +227,33 @@ class StatusPageController extends Controller
 
     public function stream(\Illuminate\Http\Request $request)
     {
-        // SSE endpoint — push live monitor status updates
+        // SSE: max 6 iterations × 15s = 90s max hold per connection.
+        // Browser auto-reconnects. Keeps PHP-FPM workers free on shared/sync server.
         return response()->stream(function () {
             $lastSent = [];
-            $maxIterations = 30; // keep connection alive ~5min (10s interval)
+            $maxIterations = 6;
             for ($i = 0; $i < $maxIterations; $i++) {
+                if (connection_aborted()) break;
                 $monitors = Monitor::where('is_active', true)
-                    ->get(['id', 'name', 'last_status', 'last_response_time', 'last_checked_at', 'health_score'])
+                    ->get(['id', 'last_status', 'last_response_time', 'health_score'])
                     ->mapWithKeys(fn($m) => [$m->id => [
                         'status' => $m->last_status,
                         'rt'     => $m->last_response_time,
                         'score'  => $m->health_score,
                     ]]);
 
-                if ($monitors->toArray() !== $lastSent) {
-                    echo "data: " . json_encode($monitors) . "\n\n";
+                $arr = $monitors->toArray();
+                if ($arr !== $lastSent) {
+                    echo "data: " . json_encode($arr) . "\n\n";
                     ob_flush();
                     flush();
-                    $lastSent = $monitors->toArray();
+                    $lastSent = $arr;
                 }
-                sleep(10);
+                sleep(15);
             }
+            // Send close signal so browser knows to reconnect cleanly
+            echo "event: done\ndata: {}\n\n";
+            ob_flush(); flush();
         }, 200, [
             'Content-Type'      => 'text/event-stream',
             'Cache-Control'     => 'no-cache',

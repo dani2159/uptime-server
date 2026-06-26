@@ -38,12 +38,15 @@ class DashboardController extends Controller
         $monitors = $sidebarQuery->get();
         $allTags  = Tag::orderBy('name')->get();
 
-        $all   = Monitor::all();
+        // Reuse already-loaded collection for stats (avoid second Monitor::all() query)
+        $statsBase = ($search || $tagFilter)
+            ? Monitor::selectRaw('last_status, count(*) as cnt')->groupBy('last_status')->pluck('cnt', 'last_status')
+            : $monitors->groupBy('last_status')->map->count();
         $stats = [
-            'total'   => $all->count(),
-            'up'      => $all->where('last_status', 'up')->count(),
-            'down'    => $all->where('last_status', 'down')->count(),
-            'pending' => $all->where('last_status', 'pending')->count(),
+            'total'   => $statsBase->sum(),
+            'up'      => $statsBase->get('up', 0),
+            'down'    => $statsBase->get('down', 0),
+            'pending' => $statsBase->get('pending', 0),
         ];
 
         $selected        = null;

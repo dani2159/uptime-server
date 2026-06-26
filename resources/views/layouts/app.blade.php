@@ -373,38 +373,47 @@ Swal.fire({ icon: 'error', title: '{{ addslashes(session('error')) }}', toast: t
         return soundEnabled;
     };
 
-    // Connect SSE
-    const es = new EventSource('{{ route('monitors.sse') }}');
-    es.onmessage = function(e) {
+    // Connect SSE — auto-reconnect when server closes after 90s
+    const SSE_URL = '{{ route('monitors.sse') }}';
+    let sseConn = null;
+
+    function processSSEData(data) {
         try {
-            const data = JSON.parse(e.data);
             let anyDown = false;
             Object.entries(data).forEach(([id, mon]) => {
                 const prev = prevStatuses[id];
-                // Update DOM elements with data-monitor-id
                 document.querySelectorAll(`[data-monitor-id="${id}"]`).forEach(el => {
                     if (el.dataset.field === 'status') {
                         el.textContent = mon.status.toUpperCase();
                         el.className = el.className.replace(/text-(red|emerald|amber|slate)-\d+/g, '');
                         el.classList.add(mon.status === 'up' ? 'text-emerald-400' : mon.status === 'down' ? 'text-red-400' : 'text-amber-400');
                     }
-                    if (el.dataset.field === 'rt') {
-                        el.textContent = mon.rt ? mon.rt + 'ms' : '-';
-                    }
-                    if (el.dataset.field === 'score') {
-                        el.textContent = mon.score ?? '-';
-                    }
+                    if (el.dataset.field === 'rt') el.textContent = mon.rt ? mon.rt + 'ms' : '-';
+                    if (el.dataset.field === 'score') el.textContent = mon.score ?? '-';
                 });
                 if (mon.status === 'down') anyDown = true;
-                if (prev && prev !== mon.status) {
-                    if (mon.status === 'down') playAlertSound();
-                }
+                if (prev && prev !== mon.status && mon.status === 'down') playAlertSound();
                 prevStatuses[id] = mon.status;
             });
             anyDown ? setFaviconRed() : setFaviconNormal();
         } catch(e) {}
-    };
-    es.onerror = function() { es.close(); };
+    }
+
+    function connectSSE() {
+        if (sseConn) sseConn.close();
+        sseConn = new EventSource(SSE_URL);
+        sseConn.onmessage = (e) => processSSEData(JSON.parse(e.data));
+        sseConn.addEventListener('done', () => {
+            sseConn.close();
+            // Reconnect after 2s when server signals it's done
+            setTimeout(connectSSE, 2000);
+        });
+        sseConn.onerror = () => {
+            sseConn.close();
+            setTimeout(connectSSE, 5000);
+        };
+    }
+    connectSSE();
 })();
 </script>
 </body>
