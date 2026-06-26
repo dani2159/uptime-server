@@ -67,6 +67,7 @@
                         ['route' => 'tags.index',           'pattern' => 'tags.*',              'icon' => 'fa-tags',            'label' => 'Tags'],
                         ['route' => 'webhook-inbound.index','pattern' => 'webhook-inbound.*',   'icon' => 'fa-satellite-dish',  'label' => 'Webhook In'],
                         ['route' => 'api-tokens.index',     'pattern' => 'api-tokens.*',        'icon' => 'fa-key',             'label' => 'API Tokens'],
+                        ['route' => 'monitors.topology',    'pattern' => 'monitors.topology',   'icon' => 'fa-diagram-project', 'label' => 'Topology'],
                     ],
                 ],
                 [

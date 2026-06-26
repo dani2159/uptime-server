@@ -79,8 +79,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/import-csv', [ImportExportController::class, 'importCsv'])->name('monitors.import-csv');
     Route::get('/smoke-test', [ImportExportController::class, 'smokeTest'])->name('monitors.smoke-test');
 
-    // Monitor clone
+    // Monitor clone + topology
     Route::post('/monitors/{monitor}/clone', [MonitorController::class, 'clone'])->name('monitors.clone');
+    Route::get('/topology', [MonitorController::class, 'topology'])->name('monitors.topology');
 
     // On-Call
     Route::resource('on-call', OnCallScheduleController::class)->except(['show']);

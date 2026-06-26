@@ -160,6 +160,61 @@
             </div>
         </div>
 
+        {{-- v2 Advanced Settings --}}
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-sky-50 dark:border-slate-700 bg-sky-50/50 dark:bg-slate-900/30">
+                <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                    <i class="fa-solid fa-shield-halved mr-1 text-sky-500"></i>Pengaturan v2 Lanjutan
+                </h2>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 dark:text-slate-200">Notifikasi Hanya Jam Kerja</p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500">Hanya kirim notif DOWN di hari/jam kerja — konfigurasi di menu <a href="{{ route('business-hours.index') }}" class="text-sky-400">Jam Kerja</a></p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="notif_business_hours_only" value="1"
+                            {{ \App\Models\AppSetting::get('notif_business_hours_only','0') === '1' ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-600 peer-checked:bg-sky-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Threshold Major Incident</label>
+                        <input type="number" name="correlated_incident_threshold" min="2" max="50"
+                            value="{{ \App\Models\AppSetting::get('correlated_incident_threshold', 5) }}"
+                            class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300">
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">N monitor DOWN serentak = Major Incident</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Auto-Close Insiden (menit)</label>
+                        <input type="number" name="incident_auto_close_minutes" min="0"
+                            value="{{ \App\Models\AppSetting::get('incident_auto_close_minutes', 0) }}"
+                            class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300">
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">0 = tidak auto-close</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Telegram Bot Token (Chatbot)</label>
+                        <input type="text" name="telegram_bot_token"
+                            value="{{ \App\Models\AppSetting::get('telegram_bot_token') }}"
+                            class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            placeholder="123456:ABC-DEF...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Allowed Chat ID (Chatbot)</label>
+                        <input type="text" name="telegram_chat_id"
+                            value="{{ \App\Models\AppSetting::get('telegram_chat_id') }}"
+                            class="w-full border border-sky-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            placeholder="-1001234567890">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Submit --}}
         <div class="flex justify-end">
             <button type="submit"

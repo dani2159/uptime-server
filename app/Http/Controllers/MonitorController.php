@@ -196,6 +196,12 @@ class MonitorController extends Controller
         return redirect()->route('monitors.edit', $new)->with('success', "Monitor berhasil diduplikat.");
     }
 
+    public function topology()
+    {
+        $monitors = Monitor::with('dependencies')->where('is_active', true)->get();
+        return view('monitors.topology', compact('monitors'));
+    }
+
     public function simulate(Request $request, Monitor $monitor)
     {
         $event = $request->input('event', 'down');

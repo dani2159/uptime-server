@@ -124,6 +124,19 @@ class SettingController extends Controller
         Setting::set('bpjs_check_interval', $data['bpjs_check_interval']);
         Setting::set('bpjs_auto_check',     isset($data['bpjs_auto_check']) ? '1' : '0');
 
+        // v2 advanced settings
+        $v2 = $request->only([
+            'notif_business_hours_only',
+            'correlated_incident_threshold',
+            'incident_auto_close_minutes',
+            'telegram_bot_token',
+            'telegram_chat_id',
+        ]);
+        foreach ($v2 as $key => $value) {
+            if ($value !== null) \App\Models\AppSetting::set($key, $value);
+        }
+        \App\Models\AppSetting::set('notif_business_hours_only', $request->has('notif_business_hours_only') ? '1' : '0');
+
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
 }
