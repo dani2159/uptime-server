@@ -65,4 +65,14 @@ class Incident extends Model
         $remMinutes = $minutes % 60;
         return $remMinutes > 0 ? "{$hours} jam {$remMinutes} menit" : "{$hours} jam";
     }
+
+    public function postMortem(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\IncidentPostMortem::class);
+    }
+
+    public function acknowledgements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\AlertAcknowledgement::class);
+    }
 }

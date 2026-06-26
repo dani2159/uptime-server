@@ -109,4 +109,29 @@ class IncidentController extends Controller
         $incident->delete();
         return redirect()->route('incidents.index')->with('success', 'Insiden dihapus.');
     }
+
+    public function postMortemForm(Incident $incident)
+    {
+        $pm = $incident->postMortem ?? new \App\Models\IncidentPostMortem(['incident_id' => $incident->id]);
+        return view('incidents.post-mortem', compact('incident', 'pm'));
+    }
+
+    public function savePostMortem(\Illuminate\Http\Request $request, Incident $incident)
+    {
+        $data = $request->validate([
+            'title'        => 'nullable|string|max:255',
+            'timeline'     => 'nullable|string',
+            'root_cause'   => 'nullable|string',
+            'impact'       => 'nullable|string',
+            'action_items' => 'nullable|string',
+            'severity'     => 'in:low,medium,high,critical',
+            'author'       => 'nullable|string|max:100',
+        ]);
+        \App\Models\IncidentPostMortem::updateOrCreate(
+            ['incident_id' => $incident->id],
+            $data
+        );
+        \App\Services\AuditService::log('incident.post_mortem', "Post-mortem insiden #{$incident->id} disimpan");
+        return redirect()->route('incidents.index')->with('success', 'Post-mortem disimpan.');
+    }
 }

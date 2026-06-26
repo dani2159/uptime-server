@@ -2,63 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Monitor;
+use App\Models\MonitorTemplate;
+use App\Models\NotificationChannel;
 use Illuminate\Http\Request;
 
 class MonitorTemplateController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $templates = MonitorTemplate::orderBy('category')->orderBy('name')->get()->groupBy('category');
+        return view('templates.index', compact('templates'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('templates.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'name'     => 'required|string|max:100',
+            'category' => 'required|string|max:50',
+            'icon'     => 'nullable|string|max:50',
+            'config'   => 'required|string',
+        ]);
+
+        $config = json_decode($data['config'], true);
+        if (!is_array($config)) {
+            return back()->withErrors(['config' => 'Config harus JSON valid'])->withInput();
+        }
+
+        MonitorTemplate::create([
+            'name'       => $data['name'],
+            'category'   => $data['category'],
+            'icon'       => $data['icon'],
+            'config'     => $config,
+            'is_builtin' => false,
+        ]);
+        return redirect()->route('templates.index')->with('success', 'Template dibuat.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function destroy($id)
     {
-        //
+        $t = MonitorTemplate::findOrFail($id);
+        if ($t->is_builtin) {
+            return back()->with('error', 'Template bawaan tidak dapat dihapus.');
+        }
+        $t->delete();
+        return redirect()->route('templates.index')->with('success', 'Template dihapus.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function apply(Request $request, MonitorTemplate $template)
     {
-        //
-    }
+        $config = $template->config;
+        $monitor = Monitor::create(array_merge([
+            'name'           => $request->input('name', $template->name),
+            'url'            => $request->input('url', ''),
+            'is_active'      => false,
+            'last_status'    => 'pending',
+            'check_interval' => 5,
+            'timeout'        => 10,
+            'retry_count'    => 3,
+        ], $config));
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('monitors.edit', $monitor)->with('success', "Monitor dari template \"{$template->name}\" dibuat. Lengkapi URL dan konfigurasi.");
     }
 }
