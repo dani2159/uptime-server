@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="scroll-smooth dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,11 +35,7 @@
     "name": "WatchTower Uptime Monitor",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, Windows, macOS, Docker",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "description": "Aplikasi monitoring uptime open source berbasis Laravel untuk website, server, database, domain, dan API dengan notifikasi multi-channel.",
     "url": "https://dani2159.github.io/uptime-server/",
     "codeRepository": "https://github.com/dani2159/uptime-server",
@@ -47,45 +43,27 @@
     "programmingLanguage": ["PHP", "JavaScript"],
     "runtimePlatform": "Laravel 12",
     "featureList": [
-      "HTTP/HTTPS monitoring",
-      "Ping (ICMP) monitoring",
-      "TCP port monitoring",
-      "DNS monitoring",
-      "Database monitoring",
-      "Docker container monitoring",
-      "Cron job monitoring",
-      "Domain expiry monitoring",
-      "Telegram notification",
-      "WhatsApp notification",
-      "Email notification",
-      "Slack notification",
-      "Discord notification",
-      "SLA contract tracking",
-      "Incident management",
-      "Status page builder",
-      "On-call schedule",
-      "Flap detection"
+      "HTTP/HTTPS monitoring","Ping (ICMP) monitoring","TCP port monitoring","DNS monitoring",
+      "Database monitoring","Docker container monitoring","Cron job monitoring","Domain expiry monitoring",
+      "Telegram notification","WhatsApp notification","Email notification","Slack notification",
+      "Discord notification","SLA contract tracking","Incident management","Status page builder",
+      "On-call schedule","Flap detection"
     ]
   }
   </script>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗼</text></svg>">
+  <link rel="icon" href="logo.png" type="image/png">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          colors: {
-            sky: {
-              450: '#17a8e8',
-            }
-          },
           animation: {
             'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'bounce-slow': 'bounce 2s infinite',
           }
         }
       }
@@ -102,85 +80,108 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     code, pre { font-family: 'JetBrains Mono', monospace; }
+
     .gradient-text {
       background: linear-gradient(135deg, #0ea5e9, #6366f1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .hero-bg {
+
+    /* Hero backgrounds */
+    .hero-bg-dark {
       background: radial-gradient(ellipse 80% 60% at 50% -10%, #0ea5e920 0%, transparent 70%),
                   radial-gradient(ellipse 60% 40% at 80% 80%, #6366f110 0%, transparent 70%),
                   #020617;
     }
-    .card-hover {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    .hero-bg-light {
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, #bae6fd 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 40% at 80% 80%, #e0e7ff 0%, transparent 70%),
+                  #f8fafc;
     }
-    .card-hover:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15);
-    }
-    .monitor-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      animation: blink 1.8s ease-in-out infinite;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .copy-btn { transition: all 0.15s; }
+
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-3px); }
+    .dark .card-hover:hover { box-shadow: 0 20px 40px rgba(14,165,233,0.15); }
+    .light .card-hover:hover { box-shadow: 0 20px 40px rgba(14,165,233,0.12); }
+
+    .monitor-dot { width:8px; height:8px; border-radius:50%; animation: blink 1.8s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .scrollbar-hide::-webkit-scrollbar { display:none; }
+
+    /* Theme toggle transition */
+    html { transition: background-color 0.2s ease; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-200 antialiased">
+<body class="antialiased bg-white dark:bg-slate-950 text-gray-800 dark:text-slate-200">
 
 <!-- ============================
      NAV
 ============================= -->
-<nav class="fixed top-0 w-full z-50 border-b border-slate-800/60 backdrop-blur-xl bg-slate-950/80">
+<nav class="fixed top-0 w-full z-50 border-b border-gray-200 dark:border-slate-800/60 backdrop-blur-xl bg-white/85 dark:bg-slate-950/80">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-    <a href="#" class="flex items-center gap-2.5 font-bold text-white text-lg">
-      <span class="text-2xl">🗼</span>
+
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2.5 font-bold text-gray-900 dark:text-white text-lg">
+      <img src="logo.png" alt="WatchTower Logo" class="h-8 w-auto object-contain">
       <span>WatchTower</span>
-      <span class="text-xs font-normal bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full">v2</span>
+      <span class="text-xs font-normal bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/30 px-2 py-0.5 rounded-full">v2</span>
     </a>
-    <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
-      <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>
-      <a href="#monitor" class="hover:text-white transition-colors">Monitor</a>
-      <a href="#notifikasi" class="hover:text-white transition-colors">Notifikasi</a>
-      <a href="#instalasi" class="hover:text-white transition-colors">Instalasi</a>
+
+    <!-- Nav links -->
+    <div class="hidden md:flex items-center gap-6 text-sm text-gray-500 dark:text-slate-400">
+      <a href="#fitur" class="hover:text-gray-900 dark:hover:text-white transition-colors">Fitur</a>
+      <a href="#monitor" class="hover:text-gray-900 dark:hover:text-white transition-colors">Monitor</a>
+      <a href="#notifikasi" class="hover:text-gray-900 dark:hover:text-white transition-colors">Notifikasi</a>
+      <a href="#instalasi" class="hover:text-gray-900 dark:hover:text-white transition-colors">Instalasi</a>
     </div>
-    <a href="https://github.com/dani2159/uptime-server"
-       target="_blank" rel="noopener"
-       class="flex items-center gap-2 text-sm font-semibold bg-white text-slate-900 hover:bg-slate-100 px-4 py-1.5 rounded-lg transition-colors">
-      <i class="fa-brands fa-github text-base"></i>
-      GitHub
-    </a>
+
+    <!-- Right side: theme toggle + GitHub -->
+    <div class="flex items-center gap-3">
+      <!-- Theme toggle -->
+      <button id="theme-toggle" onclick="toggleTheme()"
+        class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all"
+        title="Toggle tema">
+        <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
+      </button>
+      <a href="https://github.com/dani2159/uptime-server"
+         target="_blank" rel="noopener"
+         class="flex items-center gap-2 text-sm font-semibold bg-gray-900 dark:bg-white text-white dark:text-slate-900 hover:bg-gray-700 dark:hover:bg-slate-100 px-4 py-1.5 rounded-lg transition-colors">
+        <i class="fa-brands fa-github text-base"></i>
+        GitHub
+      </a>
+    </div>
   </div>
 </nav>
 
 <!-- ============================
      HERO
 ============================= -->
-<section class="hero-bg min-h-screen flex items-center pt-14">
+<section id="hero-section" class="hero-bg-dark dark:hero-bg-dark min-h-screen flex items-center pt-14">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
 
+    <!-- Logo besar -->
+    <div class="flex justify-center mb-8">
+      <img src="logo.png" alt="WatchTower" class="h-20 w-auto object-contain drop-shadow-lg">
+    </div>
+
     <!-- Badge -->
-    <div class="inline-flex items-center gap-2 bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
-      <span class="monitor-dot bg-emerald-400"></span>
+    <div class="inline-flex items-center gap-2 bg-sky-500/10 dark:bg-sky-500/10 border border-sky-300/40 dark:border-sky-500/25 text-sky-600 dark:text-sky-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
+      <span class="monitor-dot bg-emerald-500 dark:bg-emerald-400"></span>
       Open Source · Self-Hosted · Gratis Selamanya
     </div>
 
     <!-- Heading -->
-    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-tight mb-6">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white leading-tight mb-6">
       Monitor Uptime<br>
       <span class="gradient-text">Website, Server & API</span>
     </h1>
 
-    <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+    <p class="text-lg sm:text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
       WatchTower adalah aplikasi monitoring open source berbasis Laravel.
-      Pantau <strong class="text-slate-200">10 tipe layanan</strong> dan
-      terima alert via <strong class="text-slate-200">8 channel notifikasi</strong> —
+      Pantau <strong class="text-gray-900 dark:text-slate-200">10 tipe layanan</strong> dan
+      terima alert via <strong class="text-gray-900 dark:text-slate-200">8 channel notifikasi</strong> —
       Telegram, WhatsApp, Email, Slack, Discord, dan lebih banyak lagi.
     </p>
 
@@ -194,7 +195,7 @@
       </a>
       <a href="https://github.com/dani2159/uptime-server#instalasi--server-langsung"
          target="_blank" rel="noopener"
-         class="w-full sm:w-auto flex items-center justify-center gap-2 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-semibold px-8 py-3.5 rounded-xl text-base transition-all">
+         class="w-full sm:w-auto flex items-center justify-center gap-2 border border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-500 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-semibold px-8 py-3.5 rounded-xl text-base transition-all bg-white/60 dark:bg-transparent">
         <i class="fa-solid fa-book-open text-sm"></i>
         Dokumentasi
       </a>
@@ -202,21 +203,21 @@
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-4">
-        <div class="text-3xl font-black text-sky-400 mb-1">10</div>
-        <div class="text-xs text-slate-500 font-medium">Tipe Monitor</div>
+      <div class="bg-white/70 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 rounded-2xl px-4 py-4 backdrop-blur-sm">
+        <div class="text-3xl font-black text-sky-500 dark:text-sky-400 mb-1">10</div>
+        <div class="text-xs text-gray-500 dark:text-slate-500 font-medium">Tipe Monitor</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-4">
-        <div class="text-3xl font-black text-sky-400 mb-1">8</div>
-        <div class="text-xs text-slate-500 font-medium">Channel Notifikasi</div>
+      <div class="bg-white/70 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 rounded-2xl px-4 py-4 backdrop-blur-sm">
+        <div class="text-3xl font-black text-sky-500 dark:text-sky-400 mb-1">8</div>
+        <div class="text-xs text-gray-500 dark:text-slate-500 font-medium">Channel Notifikasi</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-4">
-        <div class="text-3xl font-black text-emerald-400 mb-1">Free</div>
-        <div class="text-xs text-slate-500 font-medium">MIT License</div>
+      <div class="bg-white/70 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 rounded-2xl px-4 py-4 backdrop-blur-sm">
+        <div class="text-3xl font-black text-emerald-500 dark:text-emerald-400 mb-1">Free</div>
+        <div class="text-xs text-gray-500 dark:text-slate-500 font-medium">MIT License</div>
       </div>
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-4">
-        <div class="text-3xl font-black text-violet-400 mb-1">1 mnt</div>
-        <div class="text-xs text-slate-500 font-medium">Interval Cek</div>
+      <div class="bg-white/70 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-800 rounded-2xl px-4 py-4 backdrop-blur-sm">
+        <div class="text-3xl font-black text-violet-500 dark:text-violet-400 mb-1">1 mnt</div>
+        <div class="text-xs text-gray-500 dark:text-slate-500 font-medium">Interval Cek</div>
       </div>
     </div>
   </div>
@@ -225,220 +226,194 @@
 <!-- ============================
      DEMO SCREENSHOT (CSS)
 ============================= -->
-<section class="py-16 bg-slate-900/40">
+<section class="py-16 bg-gray-50 dark:bg-slate-900/40">
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
-    <div class="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
-      <!-- Fake browser chrome -->
-      <div class="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
-        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
-        <div class="flex-1 bg-slate-700 rounded-md h-6 mx-4 flex items-center px-3">
-          <span class="text-xs text-slate-400">https://monitor.rumahsakit.com/dashboard</span>
+    <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/60 rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl dark:shadow-black/50">
+      <!-- Browser chrome -->
+      <div class="bg-gray-100 dark:bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-gray-200 dark:border-slate-700">
+        <div class="w-3 h-3 rounded-full bg-red-400"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+        <div class="w-3 h-3 rounded-full bg-green-400"></div>
+        <div class="flex-1 bg-gray-200 dark:bg-slate-700 rounded-md h-6 mx-4 flex items-center px-3">
+          <span class="text-xs text-gray-500 dark:text-slate-400">https://monitor.rumahsakit.com/dashboard</span>
         </div>
       </div>
       <!-- Fake dashboard -->
       <div class="flex h-72 md:h-96">
         <!-- Sidebar -->
-        <div class="w-56 md:w-64 bg-slate-950 border-r border-slate-800 p-3 flex flex-col gap-1 overflow-hidden">
-          <div class="text-xs font-semibold text-slate-500 px-2 mb-2 uppercase tracking-wide">Monitor (5)</div>
-          <!-- Monitor items -->
-          <div class="flex items-center gap-2.5 px-2 py-2 bg-sky-500/10 border border-sky-500/20 rounded-lg">
-            <span class="monitor-dot bg-emerald-400 flex-shrink-0"></span>
+        <div class="w-56 md:w-64 bg-gray-50 dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 p-3 flex flex-col gap-1 overflow-hidden">
+          <div class="text-xs font-semibold text-gray-400 dark:text-slate-500 px-2 mb-2 uppercase tracking-wide">Monitor (5)</div>
+          <div class="flex items-center gap-2.5 px-2 py-2 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 rounded-lg">
+            <span class="monitor-dot bg-emerald-500 flex-shrink-0"></span>
             <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-200 truncate">SIMRS Utama</div>
-              <div class="text-[10px] text-emerald-400">UP · 124ms</div>
+              <div class="text-xs font-semibold text-gray-800 dark:text-slate-200 truncate">SIMRS Utama</div>
+              <div class="text-[10px] text-emerald-500 dark:text-emerald-400">UP · 124ms</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-800/50">
-            <span class="monitor-dot bg-emerald-400 flex-shrink-0"></span>
+          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/50">
+            <span class="monitor-dot bg-emerald-500 flex-shrink-0"></span>
             <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-300 truncate">API BPJS VClaim</div>
-              <div class="text-[10px] text-emerald-400">UP · 892ms</div>
+              <div class="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">API BPJS VClaim</div>
+              <div class="text-[10px] text-emerald-500 dark:text-emerald-400">UP · 892ms</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-800/50">
+          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/50">
             <span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 animate-pulse"></span>
             <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-300 truncate">DB Server MySQL</div>
-              <div class="text-[10px] text-red-400">DOWN · 3m 21s</div>
+              <div class="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">DB Server MySQL</div>
+              <div class="text-[10px] text-red-500 dark:text-red-400">DOWN · 3m 21s</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-800/50">
-            <span class="monitor-dot bg-emerald-400 flex-shrink-0"></span>
+          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/50">
+            <span class="monitor-dot bg-emerald-500 flex-shrink-0"></span>
             <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-300 truncate">Satu Sehat API</div>
-              <div class="text-[10px] text-emerald-400">UP · 2.1s</div>
+              <div class="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">Satu Sehat API</div>
+              <div class="text-[10px] text-emerald-500 dark:text-emerald-400">UP · 2.1s</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-800/50">
-            <span class="monitor-dot bg-amber-400 flex-shrink-0"></span>
+          <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/50">
+            <span class="monitor-dot bg-amber-500 flex-shrink-0"></span>
             <div class="min-w-0">
-              <div class="text-xs font-semibold text-slate-300 truncate">Gateway IGD</div>
-              <div class="text-[10px] text-amber-400">SLOW · 4.2s</div>
+              <div class="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate">Gateway IGD</div>
+              <div class="text-[10px] text-amber-500 dark:text-amber-400">SLOW · 4.2s</div>
             </div>
           </div>
         </div>
         <!-- Main panel -->
-        <div class="flex-1 p-4 overflow-hidden">
+        <div class="flex-1 p-4 overflow-hidden bg-white dark:bg-slate-900">
           <div class="flex items-center justify-between mb-4">
             <div>
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                <span class="text-base font-bold text-white">SIMRS Utama</span>
-                <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">UP</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="text-base font-bold text-gray-900 dark:text-white">SIMRS Utama</span>
+                <span class="text-xs bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">UP</span>
               </div>
-              <div class="text-xs text-slate-500">https://simrs.rumahsakit.com · HTTP · Cek tiap 1 mnt</div>
+              <div class="text-xs text-gray-400 dark:text-slate-500">https://simrs.rumahsakit.com · HTTP · Cek tiap 1 mnt</div>
             </div>
           </div>
           <!-- Heartbeat bar -->
-          <div class="flex gap-0.5 mb-4">
-            <script>
-              document.addEventListener('DOMContentLoaded', () => {
-                const bar = document.getElementById('hb-bar');
-                if (!bar) return;
-                let html = '';
-                for (let i = 0; i < 60; i++) {
-                  const r = Math.random();
-                  const color = r > 0.08 ? 'bg-emerald-500' : (r > 0.03 ? 'bg-amber-500' : 'bg-red-500');
-                  html += `<div class="flex-1 h-8 rounded-sm ${color} opacity-${Math.random() > 0.5 ? '100' : '80'}"></div>`;
-                }
-                bar.innerHTML = html;
-              });
-            </script>
-            <div id="hb-bar" class="flex gap-0.5 w-full">
-              <!-- JS fills this -->
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-red-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-amber-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-              <div class="flex-1 h-8 rounded-sm bg-emerald-500"></div>
-            </div>
+          <div id="hb-bar" class="flex gap-0.5 mb-4 h-8">
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-red-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-amber-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
+            <div class="flex-1 rounded-sm bg-emerald-500"></div>
           </div>
           <!-- Stats -->
-          <div class="grid grid-cols-4 gap-3 mb-4">
-            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
-              <div class="text-lg font-black text-emerald-400">99.8%</div>
-              <div class="text-[10px] text-slate-500">Uptime 30h</div>
+          <div class="grid grid-cols-4 gap-3">
+            <div class="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+              <div class="text-lg font-black text-emerald-500 dark:text-emerald-400">99.8%</div>
+              <div class="text-[10px] text-gray-400 dark:text-slate-500">Uptime 30h</div>
             </div>
-            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
-              <div class="text-lg font-black text-sky-400">124ms</div>
-              <div class="text-[10px] text-slate-500">Response</div>
+            <div class="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+              <div class="text-lg font-black text-sky-500 dark:text-sky-400">124ms</div>
+              <div class="text-[10px] text-gray-400 dark:text-slate-500">Response</div>
             </div>
-            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
-              <div class="text-lg font-black text-violet-400">2</div>
-              <div class="text-[10px] text-slate-500">Insiden 30h</div>
+            <div class="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+              <div class="text-lg font-black text-violet-500 dark:text-violet-400">2</div>
+              <div class="text-[10px] text-gray-400 dark:text-slate-500">Insiden 30h</div>
             </div>
-            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
-              <div class="text-lg font-black text-amber-400">88</div>
-              <div class="text-[10px] text-slate-500">Health Score</div>
+            <div class="bg-gray-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
+              <div class="text-lg font-black text-amber-500 dark:text-amber-400">88</div>
+              <div class="text-[10px] text-gray-400 dark:text-slate-500">Health Score</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <p class="text-center text-xs text-slate-600 mt-3">Tampilan dashboard WatchTower (demo)</p>
+    <p class="text-center text-xs text-gray-400 dark:text-slate-600 mt-3">Tampilan dashboard WatchTower (demo)</p>
   </div>
 </section>
 
 <!-- ============================
      FITUR UTAMA
 ============================= -->
-<section id="fitur" class="py-24 bg-slate-950">
+<section id="fitur" class="py-24 bg-white dark:bg-slate-950">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-16">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Fitur</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Semua yang kamu butuhkan<br>untuk monitoring serius</h2>
-      <p class="text-slate-400 max-w-xl mx-auto">Bukan sekadar ping — WatchTower hadir dengan fitur enterprise yang biasanya hanya ada di solusi berbayar.</p>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Fitur</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Semua yang kamu butuhkan<br>untuk monitoring serius</h2>
+      <p class="text-gray-500 dark:text-slate-400 max-w-xl mx-auto">Bukan sekadar ping — WatchTower hadir dengan fitur enterprise yang biasanya hanya ada di solusi berbayar.</p>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <!-- Feature cards -->
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-sky-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-bell-slash text-sky-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-bell-slash text-sky-500 dark:text-sky-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Flap Detection</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Tahan notifikasi jika monitor UP-DOWN berulang dalam window waktu. Tidak banjir alert dari jaringan tidak stabil.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Flap Detection</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Tahan notifikasi jika monitor UP-DOWN berulang dalam window waktu. Tidak banjir alert dari jaringan tidak stabil.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-violet-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-users-clock text-violet-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-violet-100 dark:bg-violet-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-users-clock text-violet-500 dark:text-violet-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">On-Call Schedule</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Jadwal shift siaga tim. Alert otomatis dikirim ke channel yang sedang aktif bertugas — beda shift, beda penerima.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">On-Call Schedule</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Jadwal shift siaga tim. Alert otomatis dikirim ke channel yang sedang aktif bertugas — beda shift, beda penerima.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-emerald-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-file-contract text-emerald-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-file-contract text-emerald-500 dark:text-emerald-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">SLA Contract</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Definisikan target SLA per layanan. Pantau sisa downtime budget dengan progress bar real-time. Cocok untuk laporan ke manajemen.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">SLA Contract</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Definisikan target SLA per layanan. Pantau sisa downtime budget dengan progress bar real-time. Cocok untuk laporan ke manajemen.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-amber-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-amber-100 dark:bg-amber-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-triangle-exclamation text-amber-500 dark:text-amber-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Incident Tracking</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Insiden DOWN/UP tercatat otomatis. Tambah manual untuk gangguan non-teknis. MTTR, durasi, dan post-mortem RCA tersimpan.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Incident Tracking</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Insiden DOWN/UP tercatat otomatis. Tambah manual untuk gangguan non-teknis. MTTR, durasi, dan post-mortem RCA tersimpan.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-rose-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-arrow-trend-up text-rose-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-rose-100 dark:bg-rose-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-arrow-trend-up text-rose-500 dark:text-rose-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Eskalasi Otomatis</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Insiden tidak di-ack dalam X menit → alert dikirim ke channel eskalasi (manager, on-call tier 2). Bisa dikonfigurasi per monitor.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Eskalasi Otomatis</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Insiden tidak di-ack dalam X menit → alert dikirim ke channel eskalasi (manager, on-call tier 2). Bisa dikonfigurasi per monitor.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-sky-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-globe text-sky-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-globe text-sky-500 dark:text-sky-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Status Page Publik</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Buat halaman status di <code class="text-sky-400 text-xs">/status/slug</code>. Widget embed, badge SVG, custom domain. Tidak butuh login.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Status Page Publik</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Buat halaman status di <code class="text-sky-500 dark:text-sky-400 text-xs">/status/slug</code>. Widget embed, badge SVG, custom domain. Tidak butuh login.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-indigo-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-network-wired text-indigo-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-network-wired text-indigo-500 dark:text-indigo-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Topology & Dependency</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Visualisasi grafik dependency antar monitor. Jika parent DOWN → child skip notifikasi. Tidak spam alert saat DB mati.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Topology & Dependency</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Visualisasi grafik dependency antar monitor. Jika parent DOWN → child skip notifikasi. Tidak spam alert saat DB mati.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-teal-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-business-time text-teal-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-teal-100 dark:bg-teal-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-business-time text-teal-500 dark:text-teal-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">Business Hours Aware</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Konfigurasi jam kerja per hari. Alert routing berbeda di jam kerja vs luar jam kerja. Tidak bangunkan orang tengah malam untuk alert non-kritis.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Business Hours Aware</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Konfigurasi jam kerja per hari. Alert routing berbeda di jam kerja vs luar jam kerja. Tidak bangunkan orang tengah malam.</p>
       </div>
 
-      <div class="card-hover bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="w-10 h-10 bg-orange-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-key text-orange-400"></i>
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-orange-100 dark:bg-orange-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-key text-orange-500 dark:text-orange-400"></i>
         </div>
-        <h3 class="font-bold text-white mb-2">REST API + Token</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Akses data monitor via REST API dengan Bearer token. Integrasi ke dashboard internal, CI/CD pipeline, atau tools lain.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">REST API + Token</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Akses data monitor via REST API dengan Bearer token. Integrasi ke dashboard internal, CI/CD pipeline, atau tools lain.</p>
       </div>
     </div>
   </div>
@@ -447,64 +422,64 @@
 <!-- ============================
      MONITOR TYPES
 ============================= -->
-<section id="monitor" class="py-24 bg-gradient-to-b from-slate-900 to-slate-950">
+<section id="monitor" class="py-24 bg-gray-50 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-16">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Tipe Monitor</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">10 Tipe Monitor dalam Satu Aplikasi</h2>
-      <p class="text-slate-400 max-w-xl mx-auto">Dari website HTTP biasa hingga cron job, database, container, hingga domain expiry — semua dipantau.</p>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Tipe Monitor</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">10 Tipe Monitor dalam Satu Aplikasi</h2>
+      <p class="text-gray-500 dark:text-slate-400 max-w-xl mx-auto">Dari website HTTP biasa hingga cron job, database, container, hingga domain expiry — semua dipantau.</p>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🌐</div>
-        <div class="font-bold text-white text-sm mb-1">HTTP / HTTPS</div>
-        <div class="text-xs text-slate-500">Cek URL, status code, response time</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">HTTP / HTTPS</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Cek URL, status code, response time</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🔍</div>
-        <div class="font-bold text-white text-sm mb-1">Keyword</div>
-        <div class="text-xs text-slate-500">Validasi konten halaman dengan string search</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Keyword</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Validasi konten halaman dengan string search</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">📡</div>
-        <div class="font-bold text-white text-sm mb-1">Ping (ICMP)</div>
-        <div class="text-xs text-slate-500">Server yang memblokir HTTP</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Ping (ICMP)</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Server yang memblokir HTTP</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🔌</div>
-        <div class="font-bold text-white text-sm mb-1">TCP Port</div>
-        <div class="text-xs text-slate-500">Database, mail, port arbitrer</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">TCP Port</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Database, mail, port arbitrer</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🗂️</div>
-        <div class="font-bold text-white text-sm mb-1">DNS</div>
-        <div class="text-xs text-slate-500">Resolve domain + expected value</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">DNS</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Resolve domain + expected value</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">💓</div>
-        <div class="font-bold text-white text-sm mb-1">Push Heartbeat</div>
-        <div class="text-xs text-slate-500">Background worker, skrip</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Push Heartbeat</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Background worker, skrip</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">⏰</div>
-        <div class="font-bold text-white text-sm mb-1">Cron Monitor</div>
-        <div class="text-xs text-slate-500">DOWN jika cron tidak jalan tepat waktu</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Cron Monitor</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">DOWN jika cron tidak jalan tepat waktu</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🗄️</div>
-        <div class="font-bold text-white text-sm mb-1">Database</div>
-        <div class="text-xs text-slate-500">MySQL, PostgreSQL, Redis langsung</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Database</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">MySQL, PostgreSQL, Redis langsung</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">🐳</div>
-        <div class="font-bold text-white text-sm mb-1">Docker Container</div>
-        <div class="text-xs text-slate-500">Cek status container via Docker API</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">Docker Container</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Cek status container via Docker API</div>
       </div>
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center hover:border-sky-500/40 transition-colors">
+      <div class="bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center hover:border-sky-400/60 dark:hover:border-sky-500/40 transition-colors shadow-sm dark:shadow-none">
         <div class="text-3xl mb-3">📅</div>
-        <div class="font-bold text-white text-sm mb-1">WHOIS / Domain</div>
-        <div class="text-xs text-slate-500">Alert sebelum domain expired</div>
+        <div class="font-bold text-gray-900 dark:text-white text-sm mb-1">WHOIS / Domain</div>
+        <div class="text-xs text-gray-400 dark:text-slate-500">Alert sebelum domain expired</div>
       </div>
     </div>
   </div>
@@ -513,101 +488,101 @@
 <!-- ============================
      NOTIFIKASI
 ============================= -->
-<section id="notifikasi" class="py-24 bg-slate-950">
+<section id="notifikasi" class="py-24 bg-white dark:bg-slate-950">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-16">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Notifikasi</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Alert Langsung ke Tempat yang Kamu Pakai</h2>
-      <p class="text-slate-400 max-w-xl mx-auto">8 channel notifikasi siap pakai. Pilih satu atau kombinasikan semuanya per monitor.</p>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Notifikasi</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Alert Langsung ke Tempat yang Kamu Pakai</h2>
+      <p class="text-gray-500 dark:text-slate-400 max-w-xl mx-auto">8 channel notifikasi siap pakai. Pilih satu atau kombinasikan semuanya per monitor.</p>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-sky-500/30 transition-colors">
-        <div class="w-10 h-10 bg-sky-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-brands fa-telegram text-sky-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-sky-400/50 dark:hover:border-sky-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-sky-100 dark:bg-sky-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-brands fa-telegram text-sky-500 dark:text-sky-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Telegram</div>
-          <div class="text-xs text-slate-500">Bot API</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Telegram</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Bot API</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-green-500/30 transition-colors">
-        <div class="w-10 h-10 bg-green-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-brands fa-whatsapp text-green-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-green-400/50 dark:hover:border-green-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-green-100 dark:bg-green-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-brands fa-whatsapp text-green-500 dark:text-green-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">WhatsApp</div>
-          <div class="text-xs text-slate-500">Fonnte API</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">WhatsApp</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Fonnte API</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-amber-500/30 transition-colors">
-        <div class="w-10 h-10 bg-amber-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-envelope text-amber-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-amber-400/50 dark:hover:border-amber-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-amber-100 dark:bg-amber-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-envelope text-amber-500 dark:text-amber-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Email</div>
-          <div class="text-xs text-slate-500">SMTP</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Email</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">SMTP</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-indigo-500/30 transition-colors">
-        <div class="w-10 h-10 bg-indigo-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-brands fa-slack text-indigo-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-indigo-400/50 dark:hover:border-indigo-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-brands fa-slack text-indigo-500 dark:text-indigo-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Slack</div>
-          <div class="text-xs text-slate-500">Incoming Webhook</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Slack</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Incoming Webhook</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-violet-500/30 transition-colors">
-        <div class="w-10 h-10 bg-violet-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-brands fa-discord text-violet-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-violet-400/50 dark:hover:border-violet-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-violet-100 dark:bg-violet-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-brands fa-discord text-violet-500 dark:text-violet-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Discord</div>
-          <div class="text-xs text-slate-500">Webhook</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Discord</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Webhook</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-teal-500/30 transition-colors">
-        <div class="w-10 h-10 bg-teal-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-bell text-teal-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-teal-400/50 dark:hover:border-teal-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-teal-100 dark:bg-teal-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-bell text-teal-500 dark:text-teal-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">ntfy.sh</div>
-          <div class="text-xs text-slate-500">Push ke HP gratis</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">ntfy.sh</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Push ke HP gratis</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-orange-500/30 transition-colors">
-        <div class="w-10 h-10 bg-orange-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-mobile-screen text-orange-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-orange-400/50 dark:hover:border-orange-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-orange-100 dark:bg-orange-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-mobile-screen text-orange-500 dark:text-orange-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Pushover</div>
-          <div class="text-xs text-slate-500">Push notification</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Pushover</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">Push notification</div>
         </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-rose-500/30 transition-colors">
-        <div class="w-10 h-10 bg-rose-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-webhook text-rose-400 text-lg"></i>
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-rose-400/50 dark:hover:border-rose-500/30 transition-colors shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-rose-100 dark:bg-rose-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-webhook text-rose-500 dark:text-rose-400 text-lg"></i>
         </div>
         <div>
-          <div class="font-semibold text-white text-sm">Webhook</div>
-          <div class="text-xs text-slate-500">HTTP POST + HMAC</div>
+          <div class="font-semibold text-gray-900 dark:text-white text-sm">Webhook</div>
+          <div class="text-xs text-gray-400 dark:text-slate-500">HTTP POST + HMAC</div>
         </div>
       </div>
     </div>
 
     <!-- Alert example -->
-    <div class="max-w-sm mx-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-xl">
+    <div class="max-w-sm mx-auto bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-lg dark:shadow-xl">
       <div class="flex items-center gap-2 mb-3">
-        <i class="fa-brands fa-telegram text-sky-400"></i>
-        <span class="text-xs font-semibold text-slate-400">Telegram — WatchTower Bot</span>
-        <span class="ml-auto text-xs text-slate-600">10:32</span>
+        <i class="fa-brands fa-telegram text-sky-500 dark:text-sky-400"></i>
+        <span class="text-xs font-semibold text-gray-500 dark:text-slate-400">Telegram — WatchTower Bot</span>
+        <span class="ml-auto text-xs text-gray-300 dark:text-slate-600">10:32</span>
       </div>
-      <div class="bg-slate-800 rounded-xl p-3 text-sm font-mono leading-relaxed">
-        <div class="text-red-400 font-bold">🔴 SIMRS Utama is DOWN</div>
-        <div class="text-slate-400 mt-1">URL: https://simrs.rs.com</div>
-        <div class="text-slate-400">Waktu: 26-06-2026 10:32:15</div>
-        <div class="text-slate-400">Response: Connection timeout</div>
+      <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 text-sm font-mono leading-relaxed">
+        <div class="text-red-500 dark:text-red-400 font-bold">🔴 SIMRS Utama is DOWN</div>
+        <div class="text-gray-500 dark:text-slate-400 mt-1">URL: https://simrs.rs.com</div>
+        <div class="text-gray-500 dark:text-slate-400">Waktu: 26-06-2026 10:32:15</div>
+        <div class="text-gray-500 dark:text-slate-400">Response: Connection timeout</div>
       </div>
     </div>
   </div>
@@ -616,11 +591,11 @@
 <!-- ============================
      HOW IT WORKS
 ============================= -->
-<section class="py-24 bg-gradient-to-b from-slate-950 to-slate-900">
+<section class="py-24 bg-gray-50 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-16">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Cara Kerja</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Mulai Monitor dalam 3 Langkah</h2>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Cara Kerja</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Mulai Monitor dalam 3 Langkah</h2>
     </div>
 
     <div class="grid md:grid-cols-3 gap-8">
@@ -628,25 +603,25 @@
         <div class="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-sky-500/30">
           <i class="fa-solid fa-server text-white text-xl"></i>
         </div>
-        <div class="text-xs font-bold text-sky-400 uppercase tracking-widest mb-2">Langkah 1</div>
-        <h3 class="text-lg font-bold text-white mb-3">Install & Deploy</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Clone repo, jalankan <code class="text-sky-400">composer install</code> dan <code class="text-sky-400">php artisan migrate</code>. Atau pakai Docker Compose — selesai dalam 5 menit.</p>
+        <div class="text-xs font-bold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-2">Langkah 1</div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Install & Deploy</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Clone repo, jalankan <code class="text-sky-500 dark:text-sky-400">composer install</code> dan <code class="text-sky-500 dark:text-sky-400">php artisan migrate</code>. Atau pakai Docker Compose — selesai dalam 5 menit.</p>
       </div>
       <div class="text-center">
         <div class="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-violet-500/30">
           <i class="fa-solid fa-satellite-dish text-white text-xl"></i>
         </div>
-        <div class="text-xs font-bold text-violet-400 uppercase tracking-widest mb-2">Langkah 2</div>
-        <h3 class="text-lg font-bold text-white mb-3">Tambah Monitor</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Klik tombol <strong class="text-slate-200">+ Tambah Monitor</strong> di dashboard, pilih tipe, isi URL/host, atur interval dan channel notifikasi.</p>
+        <div class="text-xs font-bold text-violet-500 dark:text-violet-400 uppercase tracking-widest mb-2">Langkah 2</div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Tambah Monitor</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Klik tombol <strong class="text-gray-800 dark:text-slate-200">+ Tambah Monitor</strong> di dashboard, pilih tipe, isi URL/host, atur interval dan channel notifikasi.</p>
       </div>
       <div class="text-center">
         <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/30">
           <i class="fa-solid fa-bell text-white text-xl"></i>
         </div>
-        <div class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">Langkah 3</div>
-        <h3 class="text-lg font-bold text-white mb-3">Terima Alert</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">WatchTower cek tiap menit. Saat DOWN, alert langsung dikirim ke Telegram/WA/Email/Slack. Saat pulih, notifikasi recovery otomatis terkirim.</p>
+        <div class="text-xs font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2">Langkah 3</div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Terima Alert</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">WatchTower cek tiap menit. Saat DOWN, alert langsung dikirim ke Telegram/WA/Email/Slack. Saat pulih, notifikasi recovery otomatis terkirim.</p>
       </div>
     </div>
   </div>
@@ -655,104 +630,101 @@
 <!-- ============================
      INSTALASI
 ============================= -->
-<section id="instalasi" class="py-24 bg-slate-900">
+<section id="instalasi" class="py-24 bg-white dark:bg-slate-900">
   <div class="max-w-4xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-12">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Instalasi</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Deploy di Server Sendiri</h2>
-      <p class="text-slate-400">Self-hosted — data kamu, privasi kamu. Tidak ada biaya subscription.</p>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Instalasi</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Deploy di Server Sendiri</h2>
+      <p class="text-gray-500 dark:text-slate-400">Self-hosted — data kamu, privasi kamu. Tidak ada biaya subscription.</p>
     </div>
 
     <div class="grid md:grid-cols-2 gap-6">
-      <!-- Server langsung -->
-      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
         <div class="flex items-center gap-2 mb-4">
-          <i class="fa-solid fa-terminal text-sky-400"></i>
-          <span class="font-bold text-white">Server Langsung</span>
-          <span class="text-xs text-slate-500 ml-auto">PHP 8.2 + MySQL</span>
+          <i class="fa-solid fa-terminal text-sky-500 dark:text-sky-400"></i>
+          <span class="font-bold text-gray-900 dark:text-white">Server Langsung</span>
+          <span class="text-xs text-gray-400 dark:text-slate-500 ml-auto">PHP 8.2 + MySQL</span>
         </div>
-        <pre class="text-xs text-slate-300 leading-relaxed overflow-x-auto scrollbar-hide"><code><span class="text-slate-500"># 1. Clone</span>
+        <pre class="text-xs text-gray-700 dark:text-slate-300 leading-relaxed overflow-x-auto scrollbar-hide"><code><span class="text-gray-400 dark:text-slate-500"># 1. Clone</span>
 git clone https://github.com/dani2159/uptime-server
 cd uptime-server
 
-<span class="text-slate-500"># 2. Install</span>
+<span class="text-gray-400 dark:text-slate-500"># 2. Install</span>
 composer install --no-dev
 cp .env.example .env
 php artisan key:generate
 
-<span class="text-slate-500"># 3. Database</span>
+<span class="text-gray-400 dark:text-slate-500"># 3. Database</span>
 php artisan migrate
 php artisan db:seed
 
-<span class="text-slate-500"># 4. Scheduler (crontab)</span>
+<span class="text-gray-400 dark:text-slate-500"># 4. Scheduler (crontab)</span>
 * * * * * php artisan schedule:run</code></pre>
       </div>
 
-      <!-- Docker -->
-      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
         <div class="flex items-center gap-2 mb-4">
-          <i class="fa-brands fa-docker text-sky-400"></i>
-          <span class="font-bold text-white">Docker Compose</span>
-          <span class="text-xs text-slate-500 ml-auto">Termasuk MySQL</span>
+          <i class="fa-brands fa-docker text-sky-500 dark:text-sky-400"></i>
+          <span class="font-bold text-gray-900 dark:text-white">Docker Compose</span>
+          <span class="text-xs text-gray-400 dark:text-slate-500 ml-auto">Termasuk MySQL</span>
         </div>
-        <pre class="text-xs text-slate-300 leading-relaxed overflow-x-auto scrollbar-hide"><code><span class="text-slate-500"># 1. Setup</span>
+        <pre class="text-xs text-gray-700 dark:text-slate-300 leading-relaxed overflow-x-auto scrollbar-hide"><code><span class="text-gray-400 dark:text-slate-500"># 1. Setup</span>
 cp .env.example .env
-<span class="text-slate-500"># edit APP_URL dan DB_PASSWORD</span>
+<span class="text-gray-400 dark:text-slate-500"># edit APP_URL dan DB_PASSWORD</span>
 
-<span class="text-slate-500"># 2. Build & run</span>
+<span class="text-gray-400 dark:text-slate-500"># 2. Build & run</span>
 docker compose up -d --build
 
-<span class="text-slate-500"># 3. Init</span>
+<span class="text-gray-400 dark:text-slate-500"># 3. Init</span>
 docker compose exec app \
   php artisan migrate --force
 docker compose exec app \
   php artisan db:seed
 
-<span class="text-slate-500"># Akses di http://localhost:8080</span></code></pre>
+<span class="text-gray-400 dark:text-slate-500"># Akses di http://localhost:8080</span></code></pre>
       </div>
     </div>
 
-    <!-- Requirements -->
-    <div class="mt-6 bg-slate-950/60 border border-slate-800 rounded-2xl p-5 flex flex-wrap gap-4 justify-center text-sm text-slate-400">
-      <div class="flex items-center gap-1.5"><i class="fa-brands fa-php text-violet-400"></i> PHP 8.2+</div>
-      <div class="text-slate-700">·</div>
-      <div class="flex items-center gap-1.5"><i class="fa-solid fa-database text-sky-400"></i> MySQL 8.0+</div>
-      <div class="text-slate-700">·</div>
-      <div class="flex items-center gap-1.5"><i class="fa-brands fa-laravel text-red-400"></i> Laravel 12</div>
-      <div class="text-slate-700">·</div>
-      <div class="flex items-center gap-1.5"><i class="fa-brands fa-docker text-sky-400"></i> Docker (opsional)</div>
-      <div class="text-slate-700">·</div>
-      <div class="flex items-center gap-1.5"><i class="fa-solid fa-server text-emerald-400"></i> 512MB RAM min</div>
+    <div class="mt-6 bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex flex-wrap gap-4 justify-center text-sm text-gray-500 dark:text-slate-400">
+      <div class="flex items-center gap-1.5"><i class="fa-brands fa-php text-violet-500 dark:text-violet-400"></i> PHP 8.2+</div>
+      <div class="text-gray-300 dark:text-slate-700">·</div>
+      <div class="flex items-center gap-1.5"><i class="fa-solid fa-database text-sky-500 dark:text-sky-400"></i> MySQL 8.0+</div>
+      <div class="text-gray-300 dark:text-slate-700">·</div>
+      <div class="flex items-center gap-1.5"><i class="fa-brands fa-laravel text-red-500 dark:text-red-400"></i> Laravel 12</div>
+      <div class="text-gray-300 dark:text-slate-700">·</div>
+      <div class="flex items-center gap-1.5"><i class="fa-brands fa-docker text-sky-500 dark:text-sky-400"></i> Docker (opsional)</div>
+      <div class="text-gray-300 dark:text-slate-700">·</div>
+      <div class="flex items-center gap-1.5"><i class="fa-solid fa-server text-emerald-500 dark:text-emerald-400"></i> 512MB RAM min</div>
     </div>
   </div>
 </section>
 
 <!-- ============================
-     USE CASES INDONESIA
+     USE CASES
 ============================= -->
-<section class="py-24 bg-slate-950">
+<section class="py-24 bg-gray-50 dark:bg-slate-950">
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-16">
-      <div class="text-xs font-semibold text-sky-400 uppercase tracking-widest mb-3">Cocok Untuk</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Dipakai oleh Tim IT di Fasilitas Kesehatan</h2>
-      <p class="text-slate-400 max-w-xl mx-auto">WatchTower dirancang dengan mempertimbangkan kebutuhan layanan kesehatan Indonesia — SIMRS, BPJS, dan Satu Sehat.</p>
+      <div class="text-xs font-semibold text-sky-500 dark:text-sky-400 uppercase tracking-widest mb-3">Cocok Untuk</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Dipakai oleh Tim IT di Fasilitas Kesehatan</h2>
+      <p class="text-gray-500 dark:text-slate-400 max-w-xl mx-auto">WatchTower dirancang dengan mempertimbangkan kebutuhan layanan kesehatan Indonesia — SIMRS, BPJS, dan Satu Sehat.</p>
     </div>
 
     <div class="grid md:grid-cols-3 gap-5">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
         <div class="text-2xl mb-3">🏥</div>
-        <h3 class="font-bold text-white mb-2">Rumah Sakit & Klinik</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Monitor SIMRS, BPJS VClaim, Satu Sehat API. Dependency map DB → Backend → Frontend. Status page untuk manajemen.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Rumah Sakit & Klinik</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Monitor SIMRS, BPJS VClaim, Satu Sehat API. Dependency map DB → Backend → Frontend. Status page untuk manajemen.</p>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
         <div class="text-2xl mb-3">🏢</div>
-        <h3 class="font-bold text-white mb-2">Instansi & Perusahaan</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Monitor server kantor pusat dan cabang. Deteksi ISP mana yang bermasalah. Push heartbeat dari jaringan lokal.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Instansi & Perusahaan</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Monitor server kantor pusat dan cabang. Deteksi ISP mana yang bermasalah. Push heartbeat dari jaringan lokal.</p>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
         <div class="text-2xl mb-3">⚙️</div>
-        <h3 class="font-bold text-white mb-2">Tim Developer</h3>
-        <p class="text-sm text-slate-400 leading-relaxed">Monitor staging dan production. Smoke test post-deploy. REST API untuk integrasi CI/CD. Webhook inbound dari Grafana/Zabbix.</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Tim Developer</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Monitor staging dan production. Smoke test post-deploy. REST API untuk integrasi CI/CD. Webhook inbound dari Grafana/Zabbix.</p>
       </div>
     </div>
   </div>
@@ -761,12 +733,14 @@ docker compose exec app \
 <!-- ============================
      CTA FINAL
 ============================= -->
-<section class="py-24 bg-gradient-to-b from-slate-900 to-slate-950">
+<section class="py-24 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-    <div class="bg-gradient-to-r from-sky-500/10 to-violet-500/10 border border-sky-500/20 rounded-3xl p-12">
-      <div class="text-5xl mb-6">🗼</div>
-      <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">Mulai Monitor Sekarang</h2>
-      <p class="text-slate-400 mb-8 text-lg">Gratis selamanya. Open source. Self-hosted.<br>Tidak ada vendor lock-in.</p>
+    <div class="bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-500/10 dark:to-violet-500/10 border border-sky-200 dark:border-sky-500/20 rounded-3xl p-12">
+      <div class="flex justify-center mb-6">
+        <img src="logo.png" alt="WatchTower" class="h-16 w-auto object-contain">
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-4">Mulai Monitor Sekarang</h2>
+      <p class="text-gray-500 dark:text-slate-400 mb-8 text-lg">Gratis selamanya. Open source. Self-hosted.<br>Tidak ada vendor lock-in.</p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a href="https://github.com/dani2159/uptime-server"
            target="_blank" rel="noopener"
@@ -776,12 +750,12 @@ docker compose exec app \
         </a>
         <a href="https://github.com/dani2159/uptime-server/blob/v2/PANDUAN.md"
            target="_blank" rel="noopener"
-           class="flex items-center justify-center gap-2 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-semibold px-8 py-3.5 rounded-xl text-base transition-all">
+           class="flex items-center justify-center gap-2 border border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-500 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-semibold px-8 py-3.5 rounded-xl text-base transition-all bg-white dark:bg-transparent">
           <i class="fa-solid fa-book-open"></i>
           Baca Panduan
         </a>
       </div>
-      <div class="mt-8 flex items-center justify-center gap-6 text-xs text-slate-600">
+      <div class="mt-8 flex items-center justify-center gap-6 text-xs text-gray-400 dark:text-slate-600">
         <div class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> MIT License</div>
         <div class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> Tidak ada biaya</div>
         <div class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> Data di server sendiri</div>
@@ -791,25 +765,64 @@ docker compose exec app \
 </section>
 
 <!-- ============================
+     SAWERIA / DUKUNG
+============================= -->
+<section class="py-16 bg-gray-50 dark:bg-slate-900/60 border-t border-gray-100 dark:border-slate-800">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+    <div class="text-xs font-semibold text-pink-500 dark:text-pink-400 uppercase tracking-widest mb-3">Dukung Proyek Ini</div>
+    <h2 class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-3">WatchTower Gratis Selamanya</h2>
+    <p class="text-gray-500 dark:text-slate-400 mb-8 max-w-lg mx-auto">Jika WatchTower bermanfaat buat kamu, dukungan kecil sangat berarti untuk terus mengembangkan fitur baru dan mempertahankan proyek ini tetap open source.</p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-8">
+      <!-- QR Code -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="bg-white rounded-2xl p-3 shadow-lg border border-gray-100 dark:border-gray-200">
+          <img src="https://saweria.co/widgets/qr?streamKey=78874f1f7bd95085fef2a0070937c38c"
+               alt="Saweria QR Code Donasi WatchTower"
+               class="w-40 h-40 object-contain"
+               loading="lazy">
+        </div>
+        <span class="text-xs text-gray-400 dark:text-slate-500">Scan QR untuk donasi</span>
+      </div>
+      <!-- Text + button -->
+      <div class="text-left max-w-xs">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-2xl">☕</span>
+          <span class="font-bold text-gray-900 dark:text-white text-lg">Traktir Kopi</span>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-slate-400 mb-5 leading-relaxed">
+          Donasi via Saweria — platform lokal Indonesia, bisa bayar lewat transfer bank, OVO, GoPay, QRIS, dan kartu kredit.
+        </p>
+        <a href="https://saweria.co/dani2159"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-pink-500/25">
+          <i class="fa-solid fa-heart text-sm"></i>
+          Donasi di Saweria
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
      FOOTER
 ============================= -->
-<footer class="border-t border-slate-800 bg-slate-950 py-10">
+<footer class="border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-10">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
-        <span class="text-xl">🗼</span>
-        <span class="font-bold text-white">WatchTower</span>
-        <span class="text-slate-600 text-sm">Uptime Monitor</span>
+        <img src="logo.png" alt="WatchTower" class="h-7 w-auto object-contain">
+        <span class="font-bold text-gray-900 dark:text-white">WatchTower</span>
+        <span class="text-gray-400 dark:text-slate-600 text-sm">Uptime Monitor</span>
       </div>
-      <div class="flex items-center gap-6 text-sm text-slate-500">
-        <a href="https://github.com/dani2159/uptime-server" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5">
+      <div class="flex items-center gap-6 text-sm text-gray-400 dark:text-slate-500">
+        <a href="https://github.com/dani2159/uptime-server" target="_blank" rel="noopener" class="hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1.5">
           <i class="fa-brands fa-github"></i> GitHub
         </a>
-        <a href="https://github.com/dani2159/uptime-server/blob/v2/README.md" target="_blank" rel="noopener" class="hover:text-white transition-colors">README</a>
-        <a href="https://github.com/dani2159/uptime-server/blob/v2/PANDUAN.md" target="_blank" rel="noopener" class="hover:text-white transition-colors">Panduan</a>
-        <a href="https://github.com/dani2159/uptime-server/blob/v2/ROADMAP.md" target="_blank" rel="noopener" class="hover:text-white transition-colors">Roadmap</a>
+        <a href="https://github.com/dani2159/uptime-server/blob/v2/README.md" target="_blank" rel="noopener" class="hover:text-gray-900 dark:hover:text-white transition-colors">README</a>
+        <a href="https://github.com/dani2159/uptime-server/blob/v2/PANDUAN.md" target="_blank" rel="noopener" class="hover:text-gray-900 dark:hover:text-white transition-colors">Panduan</a>
+        <a href="https://github.com/dani2159/uptime-server/blob/v2/ROADMAP.md" target="_blank" rel="noopener" class="hover:text-gray-900 dark:hover:text-white transition-colors">Roadmap</a>
       </div>
-      <div class="text-xs text-slate-700">
+      <div class="text-xs text-gray-300 dark:text-slate-700">
         MIT License · Built with Laravel 12 · PHP 8.2
       </div>
     </div>
@@ -817,29 +830,66 @@ docker compose exec app \
 </footer>
 
 <script>
-  // Smooth scroll for nav links
+  // Theme management
+  const html = document.documentElement;
+  const icon = document.getElementById('theme-icon');
+  const heroSection = document.getElementById('hero-section');
+
+  function applyTheme(isDark) {
+    if (isDark) {
+      html.classList.add('dark');
+      html.classList.remove('light');
+      icon.className = 'fa-solid fa-moon text-sm';
+      heroSection.style.background = 'radial-gradient(ellipse 80% 60% at 50% -10%, #0ea5e920 0%, transparent 70%), radial-gradient(ellipse 60% 40% at 80% 80%, #6366f110 0%, transparent 70%), #020617';
+    } else {
+      html.classList.remove('dark');
+      html.classList.add('light');
+      icon.className = 'fa-solid fa-sun text-sm text-amber-500';
+      heroSection.style.background = 'radial-gradient(ellipse 80% 60% at 50% -10%, #bae6fd 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, #e0e7ff 0%, transparent 70%), #f8fafc';
+    }
+    localStorage.setItem('wt-theme', isDark ? 'dark' : 'light');
+  }
+
+  function toggleTheme() {
+    applyTheme(!html.classList.contains('dark'));
+  }
+
+  // Init theme from localStorage (default: dark)
+  const saved = localStorage.getItem('wt-theme');
+  applyTheme(saved !== 'light');
+
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });
 
-  // Nav active state on scroll
+  // Nav active on scroll
   const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('nav a[href^="#"]');
   window.addEventListener('scroll', () => {
     let current = '';
-    sections.forEach(s => {
-      if (window.scrollY >= s.offsetTop - 100) current = s.id;
-    });
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
     navLinks.forEach(a => {
-      a.classList.toggle('text-white', a.getAttribute('href') === '#' + current);
-      a.classList.toggle('text-slate-400', a.getAttribute('href') !== '#' + current);
+      const active = a.getAttribute('href') === '#' + current;
+      a.classList.toggle('text-gray-900', active);
+      a.classList.toggle('dark:text-white', active);
     });
+  });
+
+  // Generate random heartbeat bar
+  document.addEventListener('DOMContentLoaded', () => {
+    const bar = document.getElementById('hb-bar');
+    if (!bar) return;
+    let html2 = '';
+    for (let i = 0; i < 50; i++) {
+      const r = Math.random();
+      const color = r > 0.08 ? 'bg-emerald-500' : (r > 0.03 ? 'bg-amber-500' : 'bg-red-500');
+      html2 += `<div class="flex-1 h-8 rounded-sm ${color}"></div>`;
+    }
+    bar.innerHTML = html2;
   });
 </script>
 
