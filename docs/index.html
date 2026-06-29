@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth dark">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -854,9 +854,9 @@ docker compose exec app \
     applyTheme(!html.classList.contains('dark'));
   }
 
-  // Init theme from localStorage (default: dark)
+  // Init theme from localStorage (default: light)
   const saved = localStorage.getItem('wt-theme');
-  applyTheme(saved !== 'light');
+  applyTheme(saved === 'dark');
 
   // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
