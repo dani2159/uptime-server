@@ -27,7 +27,8 @@ Panduan lengkap cara menggunakan semua fitur WatchTower Uptime Monitor.
 19. [Topology / Dependency Map](#19-topology--dependency-map)
 20. [Alert Test Simulator](#20-alert-test-simulator)
 21. [Laporan Otomatis](#21-laporan-otomatis)
-22. [Contoh Kasus Nyata](#22-contoh-kasus-nyata)
+22. [Pagespeed Monitor](#22-pagespeed-monitor)
+23. [Contoh Kasus Nyata](#23-contoh-kasus-nyata)
 
 ---
 
@@ -846,7 +847,87 @@ php artisan monitor:report --period=weekly
 
 ---
 
-## 22. Contoh Kasus Nyata
+## 22. Pagespeed Monitor
+
+Monitor skor Google PageSpeed Insights secara berkala — Performance, Accessibility, Best Practices, dan SEO.
+
+Menu: **Pagespeed**
+
+### Tambah Monitor Pagespeed
+
+1. Klik **+ Tambah Monitor**
+2. Isi form:
+
+| Field | Keterangan | Default |
+| --- | --- | --- |
+| Nama | Label deskriptif | — |
+| URL | URL halaman yang dimonitor | — |
+| Strategi | `mobile` atau `desktop` | mobile |
+| Interval | Seberapa sering dicek (menit) | 60 |
+| API Key | Google Cloud API Key (opsional) | kosong |
+| Aktif | Toggle aktif/nonaktif | ✓ |
+
+3. Klik **Simpan** — cek pertama berjalan otomatis sesuai interval (atau gunakan tombol **Cek Sekarang**)
+
+### Dapatkan API Key Google (Opsional)
+
+Tanpa API Key, Google PageSpeed API menggunakan kuota publik (terbatas). Untuk kuota lebih tinggi:
+
+1. Buka [Google Cloud Console](https://console.cloud.google.com)
+2. Buat project → aktifkan **PageSpeed Insights API**
+3. Buat **API Key** (bukan Service Account)
+4. Salin dan isi di form monitor
+
+### Membaca Halaman Detail Monitor
+
+#### Score History Chart
+
+- Grafik tren 4 skor (Performance, Accessibility, Best Practices, SEO) selama 100 cek terakhir
+- Toggle per metrik — klik tombol warna untuk sembunyikan/tampilkan garis
+- Di bawah chart: rata-rata tiap skor + delta ▲/▼ vs cek sebelumnya
+- Mini bar chart — 30 cek terakhir Performance dengan warna hijau/kuning/merah
+
+#### Performance Report (panel kanan)
+
+- Gauge skor Performance bulat besar
+- Grid 4 skor kategori dengan indikator warna
+- 5 metrik Core Web Vitals:
+
+| Metrik | Baik | Perlu Perbaikan | Buruk |
+| --- | --- | --- | --- |
+| CLS (Cumulative Layout Shift) | < 0.1 | < 0.25 | ≥ 0.25 |
+| FCP (First Contentful Paint) | < 1.8s | < 3s | ≥ 3s |
+| LCP (Largest Contentful Paint) | < 2.5s | < 4s | ≥ 4s |
+| Speed Index | < 3.4s | < 5.8s | ≥ 5.8s |
+| TBT (Total Blocking Time) | < 200ms | < 600ms | ≥ 600ms |
+
+### Warna Skor
+
+| Rentang | Warna | Artinya |
+| --- | --- | --- |
+| 90–100 | Hijau | Baik |
+| 50–89 | Kuning | Perlu perbaikan |
+| 0–49 | Merah | Buruk |
+
+### Cek Manual
+
+Klik **Cek Sekarang** di halaman detail — hasil muncul dalam beberapa detik (tergantung kecepatan respons Google API).
+
+### Jadwal Otomatis
+
+Scheduler `pagespeed:check` berjalan setiap 30 menit dan mengecek semua monitor yang sudah melewati intervalnya.
+
+```bash
+# Jalankan manual
+php artisan pagespeed:check
+
+# Cek monitor tertentu
+php artisan pagespeed:check --id=1
+```
+
+---
+
+## 23. Contoh Kasus Nyata
 
 ### Kasus 1 — Monitoring SIMRS dan dependensinya
 

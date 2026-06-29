@@ -70,6 +70,16 @@ Mendukung 10 tipe monitor, notifikasi multi-channel, on-call schedule, SLA contr
 - **Monitor Template Library** — preset siap pakai: MySQL, Redis, Nginx, SatuSehat, BPJS, dll
 - **Smoke Test** — trigger check semua monitor setelah deploy; laporan pass/fail
 
+### Pagespeed Monitor
+
+- **Google PageSpeed Insights** — monitoring skor Performance, Accessibility, Best Practices, dan SEO secara berkala
+- **Strategi Mobile & Desktop** — pilih strategi per monitor
+- **Score History Chart** — grafik tren 4 skor + toggle per metrik
+- **Core Web Vitals** — pantau CLS, FCP, LCP, Speed Index, TBT per cek
+- **Mini History Bars** — visualisasi 30 cek terakhir langsung di dashboard pagespeed
+- **Avg & Trend** — rata-rata skor + delta vs cek sebelumnya
+- **API Key opsional** — gunakan tanpa key (kuota publik) atau dengan key Google Cloud
+
 ### Laporan & Settings
 - **Laporan Harian/Mingguan** — dikirim otomatis ke channel yang dikonfigurasi
 - **Maintenance Window** — jadwalkan downtime; notifikasi dan insiden tidak aktif selama window
@@ -215,6 +225,7 @@ crontab -e
 ```
 
 Scheduler aktif:
+
 | Command | Jadwal |
 |---|---|
 | `monitor:check` | Setiap menit |
@@ -222,6 +233,7 @@ Scheduler aktif:
 | `monitor:ssl-check` | 2x sehari (08.00 & 20.00) |
 | `monitor:check-domain-expiry` | Setiap hari 03.00 |
 | `monitor:auto-close-incidents` | Setiap 5 menit |
+| `pagespeed:check` | Setiap 30 menit |
 | `monitor:report` | Harian/mingguan sesuai Settings |
 | `api:health-check` | Sesuai interval di Settings |
 
@@ -312,6 +324,10 @@ php artisan monitor:simulate 5 slow          # Simulasi SLOW monitor ID 5
 # Laporan
 php artisan monitor:report --period=daily    # Laporan harian manual
 php artisan monitor:report --period=weekly   # Laporan mingguan manual
+
+# Pagespeed
+php artisan pagespeed:check                  # Cek semua pagespeed monitor
+php artisan pagespeed:check --id=3           # Cek pagespeed monitor tertentu
 
 # API Health
 php artisan api:health-check                 # Cek semua service API
