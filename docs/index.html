@@ -159,8 +159,9 @@
 <!-- ============================
      HERO
 ============================= -->
-<section id="hero-section" class="hero-bg-dark dark:hero-bg-dark min-h-screen flex items-center pt-14">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
+<section id="hero-section" class="hero-bg-dark dark:hero-bg-dark min-h-screen flex items-center pt-14 relative overflow-hidden">
+  <canvas id="particles" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index:0"></canvas>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center relative" style="z-index:1">
 
     <!-- Logo besar -->
     <div class="flex justify-center mb-8">
@@ -355,7 +356,7 @@
 
       <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
         <div class="w-10 h-10 bg-violet-100 dark:bg-violet-500/15 rounded-xl flex items-center justify-center mb-4">
-          <i class="fa-solid fa-users-clock text-violet-500 dark:text-violet-400"></i>
+          <i class="fa-solid fa-headset text-violet-500 dark:text-violet-400"></i>
         </div>
         <h3 class="font-bold text-gray-900 dark:text-white mb-2">On-Call Schedule</h3>
         <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Jadwal shift siaga tim. Alert otomatis dikirim ke channel yang sedang aktif bertugas — beda shift, beda penerima.</p>
@@ -895,6 +896,79 @@ docker compose exec app \
       a.classList.toggle('dark:text-white', active);
     });
   });
+
+  // ── Particle animation ──────────────────────────────────────────
+  (function() {
+    const canvas = document.getElementById('particles');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles = [];
+    const COUNT = 70, MAX_DIST = 130;
+
+    function resize() {
+      const hero = document.getElementById('hero-section');
+      W = canvas.width  = hero.offsetWidth;
+      H = canvas.height = hero.offsetHeight;
+    }
+
+    function isDark() { return document.documentElement.classList.contains('dark'); }
+
+    function Particle() {
+      this.x  = Math.random() * W;
+      this.y  = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.5;
+      this.vy = (Math.random() - 0.5) * 0.5;
+      this.r  = Math.random() * 1.8 + 1;
+    }
+    Particle.prototype.update = function() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < 0 || this.x > W) this.vx *= -1;
+      if (this.y < 0 || this.y > H) this.vy *= -1;
+    };
+
+    function init() {
+      resize();
+      particles = Array.from({length: COUNT}, () => new Particle());
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      const dark = isDark();
+      const dotColor  = dark ? 'rgba(56,189,248,0.55)'  : 'rgba(14,165,233,0.45)';
+      const lineColor = dark ? 'rgba(99,102,241,0.18)'  : 'rgba(14,165,233,0.18)';
+
+      for (let i = 0; i < COUNT; i++) {
+        const p = particles[i];
+        p.update();
+        // dot
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor;
+        ctx.fill();
+        // lines
+        for (let j = i + 1; j < COUNT; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x, dy = p.y - q.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < MAX_DIST) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = lineColor;
+            ctx.globalAlpha = 1 - dist / MAX_DIST;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+
+    init();
+    draw();
+  })();
 
   // Generate random heartbeat bar
   document.addEventListener('DOMContentLoaded', () => {
