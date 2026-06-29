@@ -6,8 +6,8 @@
 
   <!-- SEO Primary -->
   <title>WatchTower — Uptime Monitor Open Source untuk Website, Server & API</title>
-  <meta name="description" content="WatchTower adalah aplikasi monitoring uptime open source berbasis Laravel. Monitor website, server, database, domain, dan API dengan notifikasi Telegram, WhatsApp, Email, Slack, Discord, dan lebih banyak lagi.">
-  <meta name="keywords" content="uptime monitor, monitoring website, server monitoring, Laravel uptime, open source monitoring, monitoring API, cek uptime, monitoring server Indonesia, SLA monitoring, incident tracking">
+  <meta name="description" content="WatchTower adalah aplikasi monitoring uptime open source berbasis Laravel. Monitor website, server, database, domain, API, dan Google PageSpeed Insights dengan notifikasi Telegram, WhatsApp, Email, Slack, Discord, dan lebih banyak lagi.">
+  <meta name="keywords" content="uptime monitor, monitoring website, server monitoring, Laravel uptime, open source monitoring, monitoring API, cek uptime, monitoring server Indonesia, SLA monitoring, incident tracking, pagespeed monitor, google pagespeed insights">
   <meta name="author" content="WatchTower">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://dani2159.github.io/uptime-server/">
@@ -45,9 +45,10 @@
     "featureList": [
       "HTTP/HTTPS monitoring","Ping (ICMP) monitoring","TCP port monitoring","DNS monitoring",
       "Database monitoring","Docker container monitoring","Cron job monitoring","Domain expiry monitoring",
+      "Google PageSpeed Insights monitoring","Core Web Vitals tracking",
       "Telegram notification","WhatsApp notification","Email notification","Slack notification",
       "Discord notification","SLA contract tracking","Incident management","Status page builder",
-      "On-call schedule","Flap detection"
+      "On-call schedule","Flap detection","Escalation rules","Audit log"
     ]
   }
   </script>
@@ -415,6 +416,22 @@
         <h3 class="font-bold text-gray-900 dark:text-white mb-2">REST API + Token</h3>
         <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Akses data monitor via REST API dengan Bearer token. Integrasi ke dashboard internal, CI/CD pipeline, atau tools lain.</p>
       </div>
+
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-green-100 dark:bg-green-500/15 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-gauge-high text-green-500 dark:text-green-400"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Pagespeed Monitor</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Monitor skor Google PageSpeed Insights secara berkala — Performance, Accessibility, Best Practices, SEO, dan Core Web Vitals (CLS, FCP, LCP).</p>
+      </div>
+
+      <div class="card-hover bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-none">
+        <div class="w-10 h-10 bg-slate-100 dark:bg-slate-700/50 rounded-xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-clipboard-list text-slate-500 dark:text-slate-400"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-2">Audit Log</h3>
+        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">Semua aksi tercatat — siapa, kapan, dari IP mana. Monitor di-toggle, di-cek, dibuat, atau dihapus — semua masuk log.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -562,7 +579,7 @@
       </div>
       <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 flex items-center gap-3 hover:border-rose-400/50 dark:hover:border-rose-500/30 transition-colors shadow-sm dark:shadow-none">
         <div class="w-10 h-10 bg-rose-100 dark:bg-rose-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i class="fa-solid fa-webhook text-rose-500 dark:text-rose-400 text-lg"></i>
+          <i class="fa-solid fa-share-nodes text-rose-500 dark:text-rose-400 text-lg"></i>
         </div>
         <div>
           <div class="font-semibold text-gray-900 dark:text-white text-sm">Webhook</div>
