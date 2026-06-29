@@ -1098,6 +1098,7 @@ function monitorModal() {
     };
 }
 </script>
+@endpush
 
 @push('scripts')
 <script>

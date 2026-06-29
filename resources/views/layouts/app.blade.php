@@ -58,9 +58,10 @@
                 [
                     'label'   => 'Monitoring',
                     'icon'    => 'fa-chart-bar',
-                    'pattern' => 'monitors.*|api-health.*|maintenance.*|tags.*|templates.*|webhook-inbound.*|api-tokens.*',
+                    'pattern' => 'monitors.*|api-health.*|maintenance.*|tags.*|templates.*|webhook-inbound.*|api-tokens.*|pagespeed.*',
                     'items'   => [
                         ['route' => 'monitors.index',       'pattern' => 'monitors.*',          'icon' => 'fa-chart-bar',       'label' => 'Monitors'],
+                        ['route' => 'pagespeed.index',      'pattern' => 'pagespeed.*',         'icon' => 'fa-gauge-high',      'label' => 'Pagespeed'],
                         ['route' => 'api-health.dashboard', 'pattern' => 'api-health.*',        'icon' => 'fa-bolt',            'label' => 'API Health'],
                         ['route' => 'templates.index',      'pattern' => 'templates.*',         'icon' => 'fa-layer-group',     'label' => 'Templates'],
                         ['route' => 'maintenance.index',    'pattern' => 'maintenance.*',       'icon' => 'fa-clock',           'label' => 'Maintenance'],

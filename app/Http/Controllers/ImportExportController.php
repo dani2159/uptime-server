@@ -99,6 +99,11 @@ class ImportExportController extends Controller
         $passed = collect($results)->where('status', 'up')->count();
         $total  = count($results);
         \App\Services\AuditService::log('monitor.smoke_test', "Smoke test: {$passed}/{$total} passed");
-        return response()->json(['passed' => $passed, 'total' => $total, 'results' => $results]);
+
+        if (request()->expectsJson()) {
+            return response()->json(['passed' => $passed, 'total' => $total, 'results' => $results]);
+        }
+
+        return view('monitors.smoke-test', compact('passed', 'total', 'results'));
     }
 }

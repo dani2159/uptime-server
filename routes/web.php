@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\PagespeedController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessHourController;
 use App\Http\Controllers\EscalationController;
@@ -72,6 +73,11 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // Pagespeed Monitor
+    Route::resource('pagespeed', PagespeedController::class);
+    Route::post('pagespeed/{pagespeed}/check-now', [PagespeedController::class, 'checkNow'])->name('pagespeed.check-now');
+    Route::post('pagespeed/{pagespeed}/toggle', [PagespeedController::class, 'toggle'])->name('pagespeed.toggle');
     Route::resource('escalations', EscalationController::class)->except(['show']);
 
     // Import/Export

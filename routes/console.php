@@ -9,6 +9,7 @@ Schedule::command('monitor:check-cron')->everyMinute();
 Schedule::command('monitor:ssl-check')->twiceDaily(8, 20);
 Schedule::command('monitor:check-domain-expiry')->dailyAt('03:00');
 Schedule::command('monitor:auto-close-incidents')->everyFiveMinutes();
+Schedule::command('pagespeed:check')->everyThirtyMinutes();
 
 // Laporan otomatis — konfigurasi dari AppSetting
 try {

@@ -125,7 +125,7 @@ class UptimeChecker
 
             $statusOk = $accepted
                 ? in_array($httpStatus, $accepted)
-                : $response->successful() || in_array((int)$httpStatus, range(100, 499));
+                : ((int)$httpStatus >= 100);
 
             // Keyword check
             if ($keyword && $statusOk) {
