@@ -311,24 +311,32 @@ class UptimeChecker
     {
         $domain = $monitor->domain;
         $start  = microtime(true);
+        $timeout = $monitor->timeout ?? 10;
         try {
-            $tld    = explode('.', $domain);
-            $tld    = end($tld);
-            $server = "whois.iana.org";
-            $sock   = @fsockopen($server, 43, $errno, $errstr, $monitor->timeout ?? 10);
-            $rt     = (int) ((microtime(true) - $start) * 1000);
-            if (!$sock) return $this->buildResult('down', $rt, null, "WHOIS server unreachable");
-            fwrite($sock, $domain . "\r\n");
-            $response = '';
-            while (!feof($sock)) $response .= fgets($sock, 1024);
-            fclose($sock);
+            // Step 1: ask IANA for the TLD's WHOIS server
+            $ianaResp = $this->whoisQuery('whois.iana.org', $domain, $timeout);
+            $rt       = (int) ((microtime(true) - $start) * 1000);
+            if ($ianaResp === null) return $this->buildResult('down', $rt, null, 'WHOIS server unreachable');
 
-            // Parse expiry date
+            // Parse referral server from IANA response
+            $server = 'whois.iana.org';
+            if (preg_match('/^refer:\s*(\S+)/im', $ianaResp, $m)) {
+                $server = trim($m[1]);
+            }
+
+            // Step 2: query actual TLD WHOIS server for domain data
+            $response = ($server !== 'whois.iana.org')
+                ? ($this->whoisQuery($server, $domain, $timeout) ?? $ianaResp)
+                : $ianaResp;
+            $rt = (int) ((microtime(true) - $start) * 1000);
+
+            // Parse expiry date from multiple field formats
             $expiry = null;
-            foreach (['Expiry Date:', 'Expiration Date:', 'Registry Expiry Date:', 'paid-till:'] as $key) {
+            $fields = ['Registry Expiry Date:', 'Expiry Date:', 'Expiration Date:', 'Expiration Time:', 'paid-till:', 'expire:'];
+            foreach ($fields as $key) {
                 if (preg_match('/' . preg_quote($key, '/') . '\s*(.+)/i', $response, $m)) {
                     try { $expiry = new \Carbon\Carbon(trim($m[1])); } catch (\Throwable) {}
-                    break;
+                    if ($expiry) break;
                 }
             }
 
@@ -341,12 +349,24 @@ class UptimeChecker
                 $alertDays = $monitor->domain_expiry_alert_days ?? 30;
                 if ($days <= 0) return $this->buildResult('down', $rt, null, "Domain expired {$expiry->format('d-m-Y')}");
                 if ($days <= $alertDays) return $this->buildResult('down', $rt, null, "Domain expire {$days}h lagi ({$expiry->format('d-m-Y')})");
-                return $this->buildResult('up', $rt, null, "Domain expire {$days}h lagi");
+                return $this->buildResult('up', $rt, null, "Domain expire {$days}h lagi ({$expiry->format('d-m-Y')})");
             }
-            return $this->buildResult('up', $rt, null, 'Expiry date tidak ditemukan di WHOIS');
+            return $this->buildResult('up', $rt, null, "Expiry date tidak ditemukan (server: {$server})");
         } catch (\Throwable $e) {
             return $this->buildResult('down', (int)((microtime(true) - $start) * 1000), null, $e->getMessage());
         }
+    }
+
+    private function whoisQuery(string $server, string $domain, int $timeout): ?string
+    {
+        $sock = @fsockopen($server, 43, $errno, $errstr, $timeout);
+        if (!$sock) return null;
+        stream_set_timeout($sock, $timeout);
+        fwrite($sock, $domain . "\r\n");
+        $response = '';
+        while (!feof($sock)) $response .= fgets($sock, 1024);
+        fclose($sock);
+        return $response ?: null;
     }
 
     private function checkPing(Monitor $monitor): array
