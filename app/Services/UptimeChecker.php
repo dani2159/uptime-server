@@ -21,6 +21,7 @@ class UptimeChecker
             'database'     => $this->checkDatabase($monitor),
             'docker'       => $this->checkDocker($monitor),
             'whois'        => $this->checkWhois($monitor),
+            'udp'          => $this->checkUdp($monitor),
             default        => $this->checkHttp($monitor),
         };
 
@@ -197,6 +198,57 @@ class UptimeChecker
 
         if ($conn) { fclose($conn); return $this->buildResult('up', $responseTime, null, null); }
         return $this->buildResult('down', $responseTime, null, "TCP {$host}:{$port} — {$errstr}");
+    }
+
+    private function checkUdp(Monitor $monitor): array
+    {
+        $host    = $monitor->tcp_host ?: (parse_url($monitor->url, PHP_URL_HOST) ?: $monitor->url);
+        $port    = (int) ($monitor->tcp_port ?? 53);
+        $timeout = $monitor->timeout ?? 10;
+        $start   = microtime(true);
+
+        // Build payload: custom from request_body, or port-specific probe, or null byte
+        $payload = $this->udpPayload($port, $monitor->request_body ?? null);
+
+        $sock = @stream_socket_client("udp://{$host}:{$port}", $errno, $errstr, $timeout);
+        $rt   = (int) ((microtime(true) - $start) * 1000);
+
+        if (!$sock) return $this->buildResult('down', $rt, null, "UDP {$host}:{$port} — {$errstr}");
+
+        stream_set_timeout($sock, $timeout);
+        fwrite($sock, $payload);
+        $response = @fread($sock, 1024);
+        $meta     = stream_get_meta_data($sock);
+        fclose($sock);
+
+        $rt = (int) ((microtime(true) - $start) * 1000);
+
+        if ($meta['timed_out']) {
+            // No response within timeout — ambiguous for UDP (server may not echo back)
+            return $this->buildResult('up', $rt, null, "UDP {$host}:{$port} — no response (port reachable, service mungkin tidak reply probe)");
+        }
+
+        if ($response === false || $response === '') {
+            return $this->buildResult('down', $rt, null, "UDP {$host}:{$port} — koneksi ditolak");
+        }
+
+        return $this->buildResult('up', $rt, null, "UDP {$host}:{$port} — response " . strlen($response) . " bytes");
+    }
+
+    private function udpPayload(int $port, ?string $custom): string
+    {
+        if ($custom !== null && $custom !== '') {
+            // Support hex string prefixed with 0x
+            if (str_starts_with($custom, '0x')) return hex2bin(substr($custom, 2));
+            return $custom;
+        }
+        return match ($port) {
+            // DNS query for "." (root) type ANY
+            53  => "\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\xff\x00\x01",
+            // NTP client request (mode 3, version 3)
+            123 => "\x1b" . str_repeat("\x00", 47),
+            default => "\x00",
+        };
     }
 
     private function checkDns(Monitor $monitor): array

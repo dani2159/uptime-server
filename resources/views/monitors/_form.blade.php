@@ -23,6 +23,7 @@
                 <optgroup label="Infrastruktur">
                     <option value="ping">Ping (ICMP)</option>
                     <option value="tcp">TCP Port</option>
+                    <option value="udp">UDP Port</option>
                     <option value="dns">DNS</option>
                     <option value="docker">Docker Container</option>
                 </optgroup>
@@ -63,7 +64,7 @@
     </div>
 
     {{-- URL dinamis: http, keyword, ping, database, docker, whois --}}
-    <div x-show="!['tcp','push','dns','cron'].includes(type)" class="mb-4">
+    <div x-show="!['tcp','udp','push','dns','cron'].includes(type)" class="mb-4">
         <label class="{{ $lbl }}">
             <span x-text="{
                 http:'URL',keyword:'URL',ping:'Hostname / IP',
@@ -117,6 +118,30 @@
         </div>
         <input type="hidden" name="url" value="{{ $val('url', 'tcp://placeholder') }}"
                :disabled="type !== 'tcp'">
+    </div>
+
+    {{-- UDP --}}
+    <div x-show="type === 'udp'" class="mb-4">
+        <div class="grid grid-cols-3 gap-4">
+            <div class="col-span-2">
+                <label class="{{ $lbl }}">Host</label>
+                <input type="text" name="tcp_host" value="{{ $val('tcp_host') }}"
+                       class="{{ $inp }}" placeholder="192.168.1.1 atau server.example.com">
+            </div>
+            <div>
+                <label class="{{ $lbl }}">Port</label>
+                <input type="number" name="tcp_port" value="{{ $val('tcp_port', 53) }}"
+                       min="1" max="65535" class="{{ $inp }}" placeholder="53">
+            </div>
+        </div>
+        <div class="mt-3">
+            <label class="{{ $lbl }}">Payload (opsional)</label>
+            <input type="text" name="request_body" value="{{ $val('request_body') }}"
+                   class="{{ $inp }}" placeholder="Teks biasa atau hex: 0x1b000000...">
+            <p class="text-xs text-gray-400 mt-1">Kosong = probe otomatis (DNS port 53, NTP port 123, null byte lainnya)</p>
+        </div>
+        <input type="hidden" name="url" value="{{ $val('url', 'udp://placeholder') }}"
+               :disabled="type !== 'udp'">
     </div>
 
     {{-- DNS --}}
