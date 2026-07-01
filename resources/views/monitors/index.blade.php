@@ -101,6 +101,15 @@
             <span class="opacity-70">({{ $monitor->ssl_days_remaining }} hari lagi)</span>
         </div>
         @endif
+        @if($monitor->domain_expiry_at)
+        @php $ddays = $monitor->domain_expiry_days_remaining ?? 0; @endphp
+        <div class="mt-1 flex items-center gap-1.5 text-xs
+            {{ $ddays <= 7 ? 'text-red-500 dark:text-red-400' : ($ddays <= 30 ? 'text-yellow-500' : 'text-violet-500 dark:text-violet-400') }}">
+            <i class="fa-solid fa-calendar-xmark text-[10px]"></i>
+            Domain expire {{ \Carbon\Carbon::parse($monitor->domain_expiry_at)->format('d M Y') }}
+            <span class="opacity-70">({{ $ddays }} hari lagi)</span>
+        </div>
+        @endif
     </div>
     @empty
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm px-5 py-16 text-center">
