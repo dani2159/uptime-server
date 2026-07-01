@@ -166,7 +166,8 @@
     $hbEmpty  = max(0, 90 - $hbFilled);
     $uptime24 = $selected->uptime_24h;
     $uptime30 = $selected->uptime_30d;
-    $sslDays  = $selected->ssl_days_remaining;
+    $sslDays    = $selected->ssl_days_remaining;
+    $domainDays = $selected->domain_expiry_days_remaining;
     $isUp     = $selected->last_status === 'up';
     $isDown   = $selected->last_status === 'down';
 @endphp
@@ -359,6 +360,10 @@
                  'val' => $sslDays !== null ? $sslDays . ' hari' : '—',
                  'color' => is_null($sslDays) ? 'text-gray-400 dark:text-slate-500' : ($sslDays <= 7 ? 'text-red-600 dark:text-red-400' : ($sslDays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400')),
                  'bg' => 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30'],
+                ['icon' => 'fa-calendar-xmark', 'label' => 'Domain Expiry', 'sub' => $selected->domain_expiry_at ? \Carbon\Carbon::parse($selected->domain_expiry_at)->format('d M Y') : 'N/A',
+                 'val' => $domainDays !== null ? $domainDays . ' hari' : '—',
+                 'color' => is_null($domainDays) ? 'text-gray-400 dark:text-slate-500' : ($domainDays <= 7 ? 'text-red-600 dark:text-red-400' : ($domainDays <= 30 ? 'text-yellow-500' : 'text-violet-600 dark:text-violet-400')),
+                 'bg' => 'bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/30'],
             ];
         @endphp
         @foreach($cards as $c)
