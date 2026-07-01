@@ -338,34 +338,40 @@
         </div>
     </div>
 
-    {{-- 5 Stats cards (with FA icons) --}}
-    <div class="grid grid-cols-5 gap-3 mb-5">
-        @php
-            $cards = [
-                ['icon' => 'fa-bolt',           'label' => 'Response',    'sub' => 'Saat ini',
-                 'val' => $selected->last_response_time !== null ? $selected->last_response_time . ' ms' : '—',
-                 'color' => 'text-sky-700 dark:text-sky-400', 'bg' => 'bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-800/30'],
-                ['icon' => 'fa-chart-simple',   'label' => 'Avg Response','sub' => '24 jam',
-                 'val' => $avgResponse24h !== null ? $avgResponse24h . ' ms' : '—',
-                 'color' => 'text-sky-700 dark:text-sky-400', 'bg' => 'bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-800/30'],
-                ['icon' => 'fa-arrow-trend-up', 'label' => 'Uptime',      'sub' => '24 jam',
-                 'val' => $uptime24 !== null ? $uptime24 . '%' : '—',
-                 'color' => is_null($uptime24) ? 'text-gray-400 dark:text-slate-500' : ($uptime24 >= 99 ? 'text-green-600 dark:text-green-400' : ($uptime24 >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400')),
-                 'bg' => 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'],
-                ['icon' => 'fa-calendar-check', 'label' => 'Uptime',      'sub' => '30 hari',
-                 'val' => $uptime30 !== null ? $uptime30 . '%' : '—',
-                 'color' => is_null($uptime30) ? 'text-gray-400 dark:text-slate-500' : ($uptime30 >= 99 ? 'text-green-600 dark:text-green-400' : ($uptime30 >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400')),
-                 'bg' => 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'],
-                ['icon' => 'fa-lock',           'label' => 'SSL Cert',    'sub' => $selected->ssl_expiry_at?->format('d M Y') ?? 'N/A',
-                 'val' => $sslDays !== null ? $sslDays . ' hari' : '—',
-                 'color' => is_null($sslDays) ? 'text-gray-400 dark:text-slate-500' : ($sslDays <= 7 ? 'text-red-600 dark:text-red-400' : ($sslDays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400')),
-                 'bg' => 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30'],
-                ['icon' => 'fa-calendar-xmark', 'label' => 'Domain Expiry', 'sub' => $selected->domain_expiry_at ? \Carbon\Carbon::parse($selected->domain_expiry_at)->format('d M Y') : 'N/A',
-                 'val' => $domainDays !== null ? $domainDays . ' hari' : '—',
-                 'color' => is_null($domainDays) ? 'text-gray-400 dark:text-slate-500' : ($domainDays <= 7 ? 'text-red-600 dark:text-red-400' : ($domainDays <= 30 ? 'text-yellow-500' : 'text-violet-600 dark:text-violet-400')),
-                 'bg' => 'bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/30'],
-            ];
-        @endphp
+    {{-- Stats cards — jumlah dinamis sesuai data tersedia --}}
+    @php
+        $cards = [
+            ['icon' => 'fa-bolt',           'label' => 'Response',    'sub' => 'Saat ini',
+             'val' => $selected->last_response_time !== null ? $selected->last_response_time . ' ms' : '—',
+             'color' => 'text-sky-700 dark:text-sky-400', 'bg' => 'bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-800/30'],
+            ['icon' => 'fa-chart-simple',   'label' => 'Avg Response','sub' => '24 jam',
+             'val' => $avgResponse24h !== null ? $avgResponse24h . ' ms' : '—',
+             'color' => 'text-sky-700 dark:text-sky-400', 'bg' => 'bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-800/30'],
+            ['icon' => 'fa-arrow-trend-up', 'label' => 'Uptime',      'sub' => '24 jam',
+             'val' => $uptime24 !== null ? $uptime24 . '%' : '—',
+             'color' => is_null($uptime24) ? 'text-gray-400 dark:text-slate-500' : ($uptime24 >= 99 ? 'text-green-600 dark:text-green-400' : ($uptime24 >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400')),
+             'bg' => 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'],
+            ['icon' => 'fa-calendar-check', 'label' => 'Uptime',      'sub' => '30 hari',
+             'val' => $uptime30 !== null ? $uptime30 . '%' : '—',
+             'color' => is_null($uptime30) ? 'text-gray-400 dark:text-slate-500' : ($uptime30 >= 99 ? 'text-green-600 dark:text-green-400' : ($uptime30 >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400')),
+             'bg' => 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'],
+        ];
+        if ($selected->ssl_expiry_at) {
+            $cards[] = ['icon' => 'fa-lock', 'label' => 'SSL Cert', 'sub' => $selected->ssl_expiry_at->format('d M Y'),
+             'val' => $sslDays . ' hari',
+             'color' => $sslDays <= 7 ? 'text-red-600 dark:text-red-400' : ($sslDays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400'),
+             'bg' => 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30'];
+        }
+        if ($selected->domain_expiry_at) {
+            $cards[] = ['icon' => 'fa-calendar-xmark', 'label' => 'Domain Expiry',
+             'sub' => \Carbon\Carbon::parse($selected->domain_expiry_at)->format('d M Y'),
+             'val' => $domainDays . ' hari',
+             'color' => $domainDays <= 7 ? 'text-red-600 dark:text-red-400' : ($domainDays <= 30 ? 'text-yellow-500' : 'text-violet-600 dark:text-violet-400'),
+             'bg' => 'bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/30'];
+        }
+        $cols = count($cards);
+    @endphp
+    <div class="grid gap-3 mb-5" style="grid-template-columns: repeat({{ $cols }}, minmax(0, 1fr))">
         @foreach($cards as $c)
         <div class="bg-white dark:bg-slate-800 rounded-2xl border {{ $c['bg'] }} px-4 py-4 text-center shadow-sm">
             <i class="fa-solid {{ $c['icon'] }} text-xl {{ $c['color'] }} mb-2 block"></i>

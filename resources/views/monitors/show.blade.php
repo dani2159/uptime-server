@@ -146,34 +146,29 @@
         <p class="text-xl font-bold mt-1 text-gray-800 dark:text-slate-100">{{ $monitor->retry_count }}x</p>
         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Sekarang: {{ $monitor->current_retries }}</p>
     </div>
+    @if($monitor->ssl_expiry_at)
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm px-5 py-4">
         <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
             <i class="fa-solid fa-lock mr-1"></i>SSL Cert
         </p>
-        @if($monitor->ssl_expiry_at)
-            <p class="text-xl font-bold mt-1 {{ $monitor->ssl_days_remaining <= 7 ? 'text-red-600 dark:text-red-400' : ($monitor->ssl_days_remaining <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400') }}">
-                {{ $monitor->ssl_days_remaining }} hari
-            </p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Expire: {{ $monitor->ssl_expiry_at->format('d M Y') }}</p>
-        @else
-            <p class="text-xl font-bold mt-1 text-gray-300 dark:text-slate-600">—</p>
-        @endif
+        <p class="text-xl font-bold mt-1 {{ $monitor->ssl_days_remaining <= 7 ? 'text-red-600 dark:text-red-400' : ($monitor->ssl_days_remaining <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400') }}">
+            {{ $monitor->ssl_days_remaining }} hari
+        </p>
+        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Expire: {{ $monitor->ssl_expiry_at->format('d M Y') }}</p>
     </div>
+    @endif
+    @if($monitor->domain_expiry_at)
+    @php $ddays = $monitor->domain_expiry_days_remaining ?? 0; @endphp
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm px-5 py-4">
         <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
             <i class="fa-solid fa-calendar-xmark mr-1"></i>Domain Expiry
         </p>
-        @if($monitor->domain_expiry_at)
-            @php $ddays = $monitor->domain_expiry_days_remaining ?? 0; @endphp
-            <p class="text-xl font-bold mt-1 {{ $ddays <= 7 ? 'text-red-600 dark:text-red-400' : ($ddays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400') }}">
-                {{ $ddays }} hari
-            </p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Expire: {{ \Carbon\Carbon::parse($monitor->domain_expiry_at)->format('d M Y') }}</p>
-        @else
-            <p class="text-xl font-bold mt-1 text-gray-300 dark:text-slate-600">—</p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Belum dicek</p>
-        @endif
+        <p class="text-xl font-bold mt-1 {{ $ddays <= 7 ? 'text-red-600 dark:text-red-400' : ($ddays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400') }}">
+            {{ $ddays }} hari
+        </p>
+        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Expire: {{ \Carbon\Carbon::parse($monitor->domain_expiry_at)->format('d M Y') }}</p>
     </div>
+    @endif
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-sky-100 dark:border-slate-700 shadow-sm px-5 py-4">
         <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Uptime 24h</p>
         <p class="text-xl font-bold mt-1 {{ ($monitor->uptime_24h ?? 100) >= 99 ? 'text-green-500 dark:text-green-400' : (($monitor->uptime_24h ?? 100) >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400') }}">
