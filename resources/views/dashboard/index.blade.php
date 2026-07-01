@@ -356,12 +356,11 @@
              'color' => is_null($uptime30) ? 'text-gray-400 dark:text-slate-500' : ($uptime30 >= 99 ? 'text-green-600 dark:text-green-400' : ($uptime30 >= 95 ? 'text-yellow-500' : 'text-red-500 dark:text-red-400')),
              'bg' => 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'],
         ];
-        if ($selected->ssl_expiry_at) {
-            $cards[] = ['icon' => 'fa-lock', 'label' => 'SSL Cert', 'sub' => $selected->ssl_expiry_at->format('d M Y'),
-             'val' => $sslDays . ' hari',
-             'color' => $sslDays <= 7 ? 'text-red-600 dark:text-red-400' : ($sslDays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400'),
+        $cards[] = ['icon' => 'fa-lock', 'label' => 'SSL Cert',
+             'sub' => $selected->ssl_expiry_at?->format('d M Y') ?? 'N/A',
+             'val' => $sslDays !== null ? $sslDays . ' hari' : '—',
+             'color' => is_null($sslDays) ? 'text-gray-400 dark:text-slate-500' : ($sslDays <= 7 ? 'text-red-600 dark:text-red-400' : ($sslDays <= 30 ? 'text-yellow-500' : 'text-sky-600 dark:text-sky-400')),
              'bg' => 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30'];
-        }
         if ($selected->domain_expiry_at) {
             $cards[] = ['icon' => 'fa-calendar-xmark', 'label' => 'Domain Expiry',
              'sub' => \Carbon\Carbon::parse($selected->domain_expiry_at)->format('d M Y'),
