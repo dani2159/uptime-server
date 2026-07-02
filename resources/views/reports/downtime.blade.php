@@ -147,10 +147,14 @@
                     @endphp
                     <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition">
                         <td class="px-5 py-3 font-medium text-gray-800 dark:text-slate-200">
-                            <a href="{{ route('monitors.show', $incident->monitor_id) }}"
-                               class="hover:text-sky-600 dark:hover:text-sky-400 transition">
-                                {{ $incident->monitor->name ?? '-' }}
-                            </a>
+                            @if($incident->monitor_id && $incident->monitor)
+                                <a href="{{ route('monitors.show', $incident->monitor_id) }}"
+                                   class="hover:text-sky-600 dark:hover:text-sky-400 transition">
+                                    {{ $incident->monitor->name }}
+                                </a>
+                            @else
+                                <span class="text-gray-400 dark:text-slate-500">—</span>
+                            @endif
                         </td>
                         <td class="px-5 py-3 text-gray-600 dark:text-slate-400 whitespace-nowrap">
                             {{ $incident->started_at->format('d M Y H:i:s') }}
