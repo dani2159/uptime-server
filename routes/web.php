@@ -19,6 +19,7 @@ use App\Http\Controllers\MaintenanceWindowController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\NotificationChannelController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DowntimeReportController;
 use App\Http\Controllers\SlaReportController;
 use App\Http\Controllers\StatusPageController;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('status-pages', StatusPageController::class)->except(['show']);
     Route::resource('incidents', IncidentController::class)->except(['show']);
     Route::get('/sla-report', [SlaReportController::class, 'index'])->name('sla-report.index');
+    Route::get('/downtime-report', [DowntimeReportController::class, 'index'])->name('downtime-report.index');
+    Route::get('/downtime-report/export', [DowntimeReportController::class, 'export'])->name('downtime-report.export');
 
     Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

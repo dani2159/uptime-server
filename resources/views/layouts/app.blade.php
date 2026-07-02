@@ -74,11 +74,12 @@
                 [
                     'label'   => 'Insiden',
                     'icon'    => 'fa-triangle-exclamation',
-                    'pattern' => 'incidents.*|sla-report.*|sla.*',
+                    'pattern' => 'incidents.*|sla-report.*|sla.*|downtime-report.*',
                     'items'   => [
-                        ['route' => 'incidents.index',   'pattern' => 'incidents.*',   'icon' => 'fa-triangle-exclamation', 'label' => 'Daftar Insiden'],
-                        ['route' => 'sla-report.index',  'pattern' => 'sla-report.*',  'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
-                        ['route' => 'sla.index',         'pattern' => 'sla.*',         'icon' => 'fa-file-contract',        'label' => 'SLA Contracts'],
+                        ['route' => 'incidents.index',      'pattern' => 'incidents.*',      'icon' => 'fa-triangle-exclamation', 'label' => 'Daftar Insiden'],
+                        ['route' => 'downtime-report.index','pattern' => 'downtime-report.*','icon' => 'fa-chart-gantt',          'label' => 'Downtime Report'],
+                        ['route' => 'sla-report.index',     'pattern' => 'sla-report.*',     'icon' => 'fa-chart-line',           'label' => 'SLA Report'],
+                        ['route' => 'sla.index',            'pattern' => 'sla.*',            'icon' => 'fa-file-contract',        'label' => 'SLA Contracts'],
                     ],
                 ],
                 [
