@@ -117,4 +117,15 @@ class PagespeedController extends Controller
         $pagespeed->update(['is_active' => ! $pagespeed->is_active]);
         return back()->with('success', 'Status monitor diperbarui.');
     }
+
+    public function checkAll(PagespeedService $service)
+    {
+        $monitors = \App\Models\PagespeedMonitor::where('is_active', true)->get();
+        $done = 0;
+        foreach ($monitors as $monitor) {
+            $service->check($monitor);
+            $done++;
+        }
+        return back()->with('success', "Cek selesai: {$done} monitor diperbarui.");
+    }
 }

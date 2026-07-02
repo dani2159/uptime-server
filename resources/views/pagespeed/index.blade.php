@@ -13,10 +13,19 @@
             </h1>
             <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Monitor skor Google PageSpeed Insights secara berkala</p>
         </div>
-        <a href="{{ route('pagespeed.create') }}"
-           class="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition">
-            <i class="fa-solid fa-plus"></i> Tambah Monitor
-        </a>
+        <div class="flex items-center gap-2">
+            <form method="POST" action="{{ route('pagespeed.check-all') }}">
+                @csrf
+                <button type="submit"
+                        class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-rotate"></i> Cek Semua
+                </button>
+            </form>
+            <a href="{{ route('pagespeed.create') }}"
+               class="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition">
+                <i class="fa-solid fa-plus"></i> Tambah Monitor
+            </a>
+        </div>
     </div>
 
     @if(session('success'))

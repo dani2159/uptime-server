@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Pagespeed Monitor
+    Route::post('pagespeed/check-all', [PagespeedController::class, 'checkAll'])->name('pagespeed.check-all');
     Route::resource('pagespeed', PagespeedController::class);
     Route::post('pagespeed/{pagespeed}/check-now', [PagespeedController::class, 'checkNow'])->name('pagespeed.check-now');
     Route::post('pagespeed/{pagespeed}/toggle', [PagespeedController::class, 'toggle'])->name('pagespeed.toggle');
